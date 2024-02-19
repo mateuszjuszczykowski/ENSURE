@@ -47,3 +47,4 @@
 /home/mati/aaa/studia/thesis/app/ENSURE/MQTT_broker/obj/Debug/net7.0/MQTT_broker.pdb
 /home/mati/aaa/studia/thesis/app/ENSURE/MQTT_broker/obj/Debug/net7.0/MQTT_broker.genruntimeconfig.cache
 /home/mati/aaa/studia/thesis/app/ENSURE/MQTT_broker/obj/Debug/net7.0/ref/MQTT_broker.dll
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_broker/bin/Debug/net7.0/Serilog.Sinks.Console.dll

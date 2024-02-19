@@ -14,11 +14,9 @@ public class MqttService: BackgroundService
         this.MqttServiceConfiguration = mqttServiceConfiguration;
         this._serviceName = serviceName;
 
-        this._logger = LoggerConfig.GetLoggerConfiguration(nameof(MqttService))
-            .CreateLogger();
+        this._logger = LoggerConfig.GetLoggerConfiguration().CreateLogger();
     }
 
-    /// <inheritdoc cref="BackgroundService"/>
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
         if (!this.MqttServiceConfiguration.IsValid())
@@ -32,7 +30,6 @@ public class MqttService: BackgroundService
         await base.StartAsync(cancellationToken);
     }
 
-    /// <inheritdoc cref="BackgroundService"/>
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
@@ -128,6 +125,7 @@ public class MqttService: BackgroundService
         mqttServer.ValidatingConnectionAsync += this.ValidateConnectionAsync;
         mqttServer.InterceptingSubscriptionAsync += this.InterceptSubscriptionAsync;
         mqttServer.InterceptingPublishAsync += this.InterceptApplicationMessagePublishAsync;
+        
         mqttServer.StartAsync();
     }
     

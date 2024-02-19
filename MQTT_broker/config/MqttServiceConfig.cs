@@ -10,19 +10,24 @@ public class MqttServiceConfig
         {
             new User
             {
-                UserName = "user1",
-                Password = "password1"
+                UserName = "sensor",
+                Password = "password"
             },
             new User
             {
-                UserName = "user2",
-                Password = "password2"
+                UserName = "client",
+                Password = "password"
+            },
+            new User
+            {
+                UserName = "openhab",
+                Password = "OpenH@B123!"
             }
         });
     
-    public int DelayInMilliSeconds { get; set; } = 30000;
+    public int DelayInMilliSeconds { get; set; } = 10000;
     
-    public int TlsPort { get; set; } = 8883;
+    public int TlsPort { get; set; } = 1883;
     
     public bool IsValid()
     {

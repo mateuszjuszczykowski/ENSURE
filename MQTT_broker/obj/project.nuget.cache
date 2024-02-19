@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Kw8UolUoODFV1cPJFeNPE1H5FgC2hNKQulwNLA4bSao4UZslkjSch01g99LAEMf/Jz/L3RpaeTfD06F7Zq0U5g==",
+  "dgSpecHash": "uD4K9+2g++GxNacZJL8p8/rhjtnE3wN5trGvgG7I4lzQbaw17XWm9QENztQCWN5noJXcSLVPN3LOjqDU+Xxvnw==",
   "success": true,
   "projectFilePath": "/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_broker/MQTT_broker.csproj",
   "expectedPackageFiles": [
@@ -32,6 +32,7 @@
     "/home/mati/.nuget/packages/mqttnet/4.3.3.952/mqttnet.4.3.3.952.nupkg.sha512",
     "/home/mati/.nuget/packages/serilog/3.1.1/serilog.3.1.1.nupkg.sha512",
     "/home/mati/.nuget/packages/serilog.exceptions/8.4.0/serilog.exceptions.8.4.0.nupkg.sha512",
+    "/home/mati/.nuget/packages/serilog.sinks.console/5.0.1/serilog.sinks.console.5.0.1.nupkg.sha512",
     "/home/mati/.nuget/packages/system.diagnostics.diagnosticsource/7.0.1/system.diagnostics.diagnosticsource.7.0.1.nupkg.sha512",
     "/home/mati/.nuget/packages/system.diagnostics.eventlog/7.0.0/system.diagnostics.eventlog.7.0.0.nupkg.sha512",
     "/home/mati/.nuget/packages/system.reflection.typeextensions/4.7.0/system.reflection.typeextensions.4.7.0.nupkg.sha512",

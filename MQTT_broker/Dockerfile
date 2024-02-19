@@ -3,16 +3,16 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["WorkerService1/WorkerService1.csproj", "WorkerService1/"]
-RUN dotnet restore "WorkerService1/WorkerService1.csproj"
+COPY ["MQTT_broker/MQTT_broker.csproj", "MQTT_broker/"]
+RUN dotnet restore "MQTT_broker/MQTT_broker.csproj"
 COPY . .
-WORKDIR "/src/WorkerService1"
-RUN dotnet build "WorkerService1.csproj" -c Release -o /app/build
+WORKDIR "/src/MQTT_broker"
+RUN dotnet build "MQTT_broker.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "WorkerService1.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "MQTT_broker.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "WorkerService1.dll"]
+ENTRYPOINT ["dotnet", "MQTT_broker.dll"]

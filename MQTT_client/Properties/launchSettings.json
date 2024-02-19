@@ -1,0 +1,11 @@
+﻿{
+  "profiles": {
+    "MQTT_client": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
