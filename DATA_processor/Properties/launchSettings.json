@@ -1,0 +1,11 @@
+﻿{
+  "profiles": {
+    "DATA_processor": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

@@ -8,12 +8,14 @@ public class MqttClientWorker: BackgroundService
     public MqttClientConfig MqttClientConfig { get; set; }
     private static double BytesDivider => 1048576.0; // 1024 * 1024
     private readonly string _serviceName = "MQTT Client";
+    private DbHandler _dbHandler;
     
     public MqttClientWorker(MqttClientConfig mqttClientConfig, string serviceName)
     {
         this.MqttClientConfig = mqttClientConfig; 
         this._serviceName = serviceName;
         this._logger = LoggerConfig.GetLoggerConfiguration().CreateLogger();
+        this._dbHandler = new DbHandler();
         
         _logger.Information("Starting service");
         
@@ -64,21 +66,28 @@ public class MqttClientWorker: BackgroundService
     
     private Task InterceptMessageAsync(MqttApplicationMessageReceivedEventArgs args)
     {
-        LogMessage(args);
+        HandleMessage(args);
         return Task.CompletedTask;
     }
     
-    private void LogMessage(MqttApplicationMessageReceivedEventArgs args)
+    private void HandleMessage(MqttApplicationMessageReceivedEventArgs args)
     {
         var payload = args.ApplicationMessage?.PayloadSegment is null ? null : Encoding.UTF8.GetString(args.ApplicationMessage.PayloadSegment);
-
-        this._logger.Information(
+    
+        if(payload is null)
+        {
+            _logger.Warning("Payload is null");
+            return;
+        }
+        
+        _logger.Information(
             "Message: ClientId = {ClientId}, Topic = {Topic}, Payload = {Payload}, QoS = {Qos}, Retain-Flag = {RetainFlag}",
             args.ClientId,
             args.ApplicationMessage?.Topic,
             payload,
             args.ApplicationMessage?.QualityOfServiceLevel,
             args.ApplicationMessage?.Retain);
+        _dbHandler.InsertMessage(payload);
     }
     
     private void LogMemoryInformation()

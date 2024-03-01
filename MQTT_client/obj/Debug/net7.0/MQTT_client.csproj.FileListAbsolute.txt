@@ -48,3 +48,16 @@
 /home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/obj/Debug/net7.0/mqtt_client.pdb
 /home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/obj/Debug/net7.0/MQTT_client.genruntimeconfig.cache
 /home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/obj/Debug/net7.0/ref/mqtt_client.dll
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/bin/Debug/net7.0/AWSSDK.Core.dll
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/bin/Debug/net7.0/AWSSDK.SecurityToken.dll
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/bin/Debug/net7.0/DnsClient.dll
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/bin/Debug/net7.0/MongoDB.Bson.dll
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/bin/Debug/net7.0/MongoDB.Driver.dll
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/bin/Debug/net7.0/MongoDB.Driver.Core.dll
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/bin/Debug/net7.0/MongoDB.Libmongocrypt.dll
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/bin/Debug/net7.0/SharpCompress.dll
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/bin/Debug/net7.0/Snappier.dll
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/bin/Debug/net7.0/ZstdSharp.dll
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/bin/Debug/net7.0/runtimes/linux/native/libmongocrypt.so
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/bin/Debug/net7.0/runtimes/osx/native/libmongocrypt.dylib
+/home/mati/aaa/studia/thesis/app/ENSURE/MQTT_client/bin/Debug/net7.0/runtimes/win/native/mongocrypt.dll

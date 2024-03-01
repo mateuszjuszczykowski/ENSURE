@@ -1,0 +1,155 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    ViewData["Header"] = "Home";
+    var latest = ViewBag.Latest;
+}
+
+<table class="table text-center" id="table">
+    <tr>
+        <th>Time</th>
+        <th>Total</th>
+        <th>Today</th>
+        <th>Power</th>
+        <th>Apparent Power</th>
+        <th>Reactive Power</th>
+        <th>Power Factor</th>
+        <th>Voltage</th>
+        <th>Current</th>
+    </tr>
+    <tr>
+        <td>@latest.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+        <td>@latest.Total kWh</td>
+        <td>@latest.Today kWh</td>
+        <td>@latest.Power kWh</td>
+        <td>@latest.ApparentPower Wh</td>
+        <td>@latest.ReactivePower Wh</td>
+        <td>@latest.Factor</td>
+        <td>@latest.Voltage V</td>
+        <td>@latest.Current A</td>
+    </tr>
+</table>
+
+<!-- Date range input -->
+<label for="startDate">Start Date:</label>
+<input type="datetime-local" id="startDate">
+<label for="endDate">End Date:</label>
+<input type="datetime-local" id="endDate">
+<button id="fetchData">Fetch Data</button>
+
+<!-- Canvas for the chart -->
+<div class="chart-container">
+    <canvas id="myChart1"></canvas>
+    <canvas id="myChart2"></canvas>
+    <canvas id="myChart3"></canvas>
+    <canvas id="myChart4"></canvas>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    window.onload = function() {
+        var startDateInput = document.getElementById('startDate');
+        var endDateInput = document.getElementById('endDate');
+    
+        var now = new Date();
+        var twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+        var oneHourFuture = new Date(now.getTime() + 1 * 60 * 60 * 1000);
+    
+        startDateInput.value = twoHoursAgo.toISOString().substring(0, 16);
+        endDateInput.value = oneHourFuture.toISOString().substring(0, 16);
+        
+        // Fetch data on page load
+        document.getElementById('fetchData').click();
+    };
+
+    document.getElementById('fetchData').addEventListener('click', function() {
+        var startDate = document.getElementById('startDate').value;
+        var endDate = document.getElementById('endDate').value;
+    
+        fetch('/api/data?startDate=' + startDate + '&endDate=' + endDate)
+            .then(response => response.json())
+            .then(data => {
+                const labels = data.map(item => {
+                    date = new Date(item.timestamp)
+                    return date.toLocaleString('en-GB', {month: 'short' ,day: '2-digit', hour: '2-digit', minute: '2-digit'})
+                });
+    
+                // Create a new chart for each canvas
+                createChart('myChart1', 'Power', 'rgb(32,89,147)', labels, data.map(item => item.power));
+                createChart('myChart2', 'Voltage', 'rgb(255,0,54)', labels, data.map(item => item.voltage));
+                createChart('myChart3', 'Current', 'rgb(161,28,182)', labels, data.map(item => item.current));
+                createChart('myChart4', 'Total', 'rgb(75, 192, 192)', labels, data.map(item => item.total));
+            });
+    });
+    
+    var charts = {};
+    
+    function createChart(canvasId, label, borderColor, labels, data) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        // If a chart already exists on this canvas, destroy it
+        if (charts[canvasId]) {
+            charts[canvasId].destroy();
+        }
+        
+        // check if the canvas is already in the DOM
+        if (ctx === null) {
+            return;
+        }
+    
+        charts[canvasId] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: data,
+                    borderColor: borderColor,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Data over time'
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Time'
+                        },
+                        time: {
+                            unit: 'minute',
+                            displayFormats : {
+                                'minute': 'HH:mm',
+                                'hour': 'HH:mm',
+                            },
+                            tooltipFormat: 'HH:mm'
+                        },
+                        ticks: {
+                            display: true,
+                            major: {
+                                enabled: true
+                            },
+                            minor: {
+                                enabled: false
+                            },
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Value'
+                        }
+                    }]
+                }
+            }
+        });
+    }
+</script>

@@ -1,0 +1,11 @@
+﻿{
+  "profiles": {
+    "PLUG_emulator": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
