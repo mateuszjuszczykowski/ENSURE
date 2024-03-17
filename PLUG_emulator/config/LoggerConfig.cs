@@ -1,4 +1,4 @@
-namespace mqtt_client;
+namespace PLUG_emulator.config;
 
 public static class LoggerConfig
 {

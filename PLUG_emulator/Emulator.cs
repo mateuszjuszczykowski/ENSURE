@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using PLUG_emulator.config;
 
 namespace PLUG_emulator;
@@ -9,6 +11,7 @@ public class Emulator: BackgroundService
     private static double BytesDivider => 1048576.0; // 1024 * 1024
     private readonly string _serviceName = "MQTT emulator";
     private IMqttClient Client;
+    private DataGenerator _dataGenerator;
     
     
     public Emulator(MqttClientConfig mqttClientConfig, string serviceName)
@@ -16,6 +19,7 @@ public class Emulator: BackgroundService
         this.MqttClientConfig = mqttClientConfig; 
         this._serviceName = serviceName;
         this._logger = LoggerConfig.GetLoggerConfiguration().CreateLogger();
+        this._dataGenerator = new DataGenerator();
         
         _logger.Information("Starting service");
         
@@ -115,8 +119,9 @@ public class Emulator: BackgroundService
     
     private async Task sendPeriodicData(IMqttClient client, CancellationToken stoppingToken)
     {
-        await Task.Delay(1000, stoppingToken);
-        var payload = "Hello, World!";
+        await Task.Delay(500, stoppingToken);
+        var data = _dataGenerator.GenerateData();
+        var payload = JsonSerializer.Serialize(data);
         var message = new MqttApplicationMessageBuilder()
             .WithTopic("tele/tasmota/SENSOR")
             .WithPayload(payload)

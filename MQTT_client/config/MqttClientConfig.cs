@@ -17,6 +17,6 @@ public class MqttClientConfig
     public List<string> Topics { get; set; } = new()
     {
         "tele/tasmota/SENSOR",
-        //"tele/tasmota/STATE"
+        //"cmnd/tasmota/json"
     };
 }
