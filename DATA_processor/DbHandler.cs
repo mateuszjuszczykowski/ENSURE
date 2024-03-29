@@ -1,6 +1,7 @@
 using DATA_processor;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using DATA_processor.config;
 
 namespace mqtt_client;
 
@@ -17,7 +18,7 @@ public class DbHandler
 
     public DbHandler()
     {
-        log = LoggerConfig.GetLoggerConfiguration().CreateLogger();
+        log = DATA_processor.config.LoggerConfig.GetLoggerConfiguration().CreateLogger();
         DbClient = new MongoClient(connectionString);
         Database = DbClient.GetDatabase(databaseName);
     }

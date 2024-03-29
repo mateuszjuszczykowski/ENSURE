@@ -23,10 +23,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="config\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Compile Include="bin\GlobalUsings.cs" />
       <Compile Include="bin\LoggerConfig.cs" />
     </ItemGroup>
