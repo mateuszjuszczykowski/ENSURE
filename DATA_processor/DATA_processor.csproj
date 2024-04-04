@@ -21,9 +21,4 @@
         <Link>.dockerignore</Link>
       </Content>
     </ItemGroup>
-
-    <ItemGroup>
-      <Compile Include="bin\GlobalUsings.cs" />
-      <Compile Include="bin\LoggerConfig.cs" />
-    </ItemGroup>
 </Project>

@@ -32,7 +32,7 @@ public class Processor : BackgroundService
             }
             
             _logger.Information("Worker running at: {time}", DateTimeOffset.Now);
-            await Task.Delay(1000, stoppingToken);
+            await Task.Delay(5000, stoppingToken);
         }
     }
     
