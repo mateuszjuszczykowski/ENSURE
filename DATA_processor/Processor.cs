@@ -40,10 +40,12 @@ public class Processor : BackgroundService
     {
         foreach (var message in messages)
         {
-            var reading = BsonSerializer.Deserialize<DataModel>(message);
+            var rawMessage = BsonSerializer.Deserialize<DataModel>(message);
+            var reading = rawMessage.Payload;
 
             var dataDTO = new DataDTO()
             {
+                deviceID = rawMessage.deviceID,
                 Timestamp = DateTime.Parse(reading.Time),
                 TotalStartTime = DateTime.Parse(reading.ENERGY.TotalStartTime),
                 Total = reading.ENERGY.Total,

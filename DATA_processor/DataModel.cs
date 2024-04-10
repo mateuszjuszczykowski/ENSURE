@@ -5,6 +5,12 @@ namespace DATA_processor;
 public class DataModel
 {
     public BsonObjectId _id { get; set; }
+    public Payload Payload { get; set; }
+    public string deviceID { get; set; }
+}
+
+public class Payload
+{
     public string Time { get; set; }
     public Energy ENERGY { get; set; }
 }
