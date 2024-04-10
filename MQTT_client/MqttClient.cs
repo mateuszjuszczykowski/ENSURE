@@ -73,6 +73,9 @@ public class MqttClientWorker: BackgroundService
     private void HandleMessage(MqttApplicationMessageReceivedEventArgs args)
     {
         var payload = args.ApplicationMessage?.PayloadSegment is null ? null : Encoding.UTF8.GetString(args.ApplicationMessage.PayloadSegment);
+        
+        var topicParts = args.ApplicationMessage?.Topic.Split('/');
+        var deviceId = topicParts.Length > 2 ? topicParts[2] : "unknown";
     
         if(payload is null)
         {
@@ -80,14 +83,17 @@ public class MqttClientWorker: BackgroundService
             return;
         }
         
+        var payloadWithId = $"{{\"deviceId\":\"{deviceId}\",\"payload\":{payload}}}";
+
+        
         _logger.Information(
             "Message: ClientId = {ClientId}, Topic = {Topic}, Payload = {Payload}, QoS = {Qos}, Retain-Flag = {RetainFlag}",
             args.ClientId,
             args.ApplicationMessage?.Topic,
-            payload,
+            payloadWithId,
             args.ApplicationMessage?.QualityOfServiceLevel,
             args.ApplicationMessage?.Retain);
-        _dbHandler.InsertMessage(payload);
+        _dbHandler.InsertMessage(payloadWithId);
     }
     
     private void LogMemoryInformation()
