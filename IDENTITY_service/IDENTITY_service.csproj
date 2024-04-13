@@ -8,6 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="IdentityModel" Version="7.0.0" />
+        <PackageReference Include="IdentityServer4" Version="4.1.2" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.16"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
     </ItemGroup>
@@ -16,6 +18,10 @@
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Controllers\" />
     </ItemGroup>
 
 </Project>

@@ -5,6 +5,7 @@ namespace API_service;
 public class DataModel
 {
     public ObjectId _id { get; set; }
+    public string deviceID { get; set; }
     public DateTime Timestamp { get; set; }
     public DateTime TotalStartTime { get; set; }
     public double Total { get; set; }

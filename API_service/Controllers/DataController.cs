@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -17,7 +18,8 @@ public class DataController: ControllerBase
         _dbHandler = handler;
     }
 
-    [HttpGet]
+    [HttpGet(Name = "GetAllData")]
+    [Authorize]
     public IActionResult GetAllData([FromQuery]int? limit, [FromQuery]DateTime? startDate, [FromQuery]DateTime? endDate)
     {
         List<DataModel> data = _dbHandler.GetAllData();
