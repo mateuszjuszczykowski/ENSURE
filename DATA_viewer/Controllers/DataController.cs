@@ -1,3 +1,4 @@
+using DATABASE_library;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DATA_viewer.Controllers;
@@ -16,7 +17,7 @@ public class DataController : ControllerBase
     [HttpGet]
     public IActionResult Get(DateTime startDate, DateTime endDate)
     {
-        var data = _dbHandler.GetDataBetweenDates(startDate, endDate);
+        var data = _dbHandler.GetDataBetweenDates("DATA", startDate, endDate);
         return Ok(data);
     }
 }

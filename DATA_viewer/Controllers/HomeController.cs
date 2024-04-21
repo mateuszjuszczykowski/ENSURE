@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using DATA_viewer.Models;
+using DATABASE_library;
 using MongoDB.Driver.Linq;
 
 namespace DATA_viewer.Controllers;
@@ -18,7 +19,7 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        var data = _dbHandler.GetAllData();
+        var data = _dbHandler.GetAllData("DATA");
         var latest = data.FirstOrDefault(e => e.Timestamp == data.Max(e => e.Timestamp));
         ViewBag.Data = data;
         ViewBag.Latest = latest;

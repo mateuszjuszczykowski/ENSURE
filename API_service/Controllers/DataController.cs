@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using DATABASE_library;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
@@ -22,7 +23,7 @@ public class DataController: ControllerBase
     [Authorize]
     public IActionResult GetAllData([FromQuery]int? limit, [FromQuery]DateTime? startDate, [FromQuery]DateTime? endDate)
     {
-        List<DataModel> data = _dbHandler.GetAllData();
+        List<DataModel> data = _dbHandler.GetAllData("DATA");
         if (limit != null)
         {
             data = data.Take((int) limit).ToList();

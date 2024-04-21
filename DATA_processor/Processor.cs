@@ -1,6 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
-using mqtt_client;
+using DATABASE_library;
 
 namespace DATA_processor;
 
@@ -25,7 +25,7 @@ public class Processor : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            var messages = _dbHandler.GetMessages();
+            var messages = _dbHandler.GetMessages("RAW");
             if(messages.Count > 0)
             {
                 ProcessMessages(messages);
@@ -40,10 +40,10 @@ public class Processor : BackgroundService
     {
         foreach (var message in messages)
         {
-            var rawMessage = BsonSerializer.Deserialize<DataModel>(message);
+            var rawMessage = BsonSerializer.Deserialize<RawDataModel>(message);
             var reading = rawMessage.Payload;
 
-            var dataDTO = new DataDTO()
+            var dataDTO = new DataModel()
             {
                 deviceID = rawMessage.deviceID,
                 Timestamp = DateTime.Parse(reading.Time),
@@ -58,8 +58,8 @@ public class Processor : BackgroundService
                 Current = reading.ENERGY.Current,
             };
             
-            _dbHandler.InsertData(dataDTO);
-            _dbHandler.RemoveMessage(message);
+            _dbHandler.InsertData(dataDTO, "DATA");
+            _dbHandler.RemoveMessage(message, "RAW");
         }
     }
 }

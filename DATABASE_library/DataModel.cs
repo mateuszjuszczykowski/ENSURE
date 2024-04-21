@@ -1,6 +1,6 @@
 using MongoDB.Bson;
 
-namespace API_service;
+namespace DATABASE_library;
 
 public class DataModel
 {

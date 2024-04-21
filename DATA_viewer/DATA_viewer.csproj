@@ -23,8 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MongoDB.Bson" Version="2.23.1" />
-      <PackageReference Include="MongoDB.Driver.Core" Version="2.23.1" />
+      <ProjectReference Include="..\DATABASE_library\DATABASE_library.csproj" />
     </ItemGroup>
 
 </Project>

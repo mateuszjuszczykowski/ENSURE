@@ -1,8 +1,8 @@
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
 
-namespace DATA_processor;
+namespace DATABASE_library;
 
-public class DataModel
+public class RawDataModel
 {
     public BsonObjectId _id { get; set; }
     public Payload Payload { get; set; }

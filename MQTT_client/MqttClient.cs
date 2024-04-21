@@ -1,4 +1,5 @@
 using MQTT_client.config;
+using DATABASE_library;
 
 namespace mqtt_client;
 
@@ -93,7 +94,7 @@ public class MqttClientWorker: BackgroundService
             payloadWithId,
             args.ApplicationMessage?.QualityOfServiceLevel,
             args.ApplicationMessage?.Retain);
-        _dbHandler.InsertMessage(payloadWithId);
+        _dbHandler.InsertMessage(payloadWithId, "RAW");
     }
     
     private void LogMemoryInformation()

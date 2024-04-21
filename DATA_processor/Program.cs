@@ -1,6 +1,5 @@
 using DATA_processor;
 using DATA_processor.config;
-using mqtt_client;
 
 Log.Logger = DATA_processor.config.LoggerConfig.GetLoggerConfiguration().CreateLogger();
 IHost host = Host.CreateDefaultBuilder(args)

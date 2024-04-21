@@ -10,9 +10,6 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.16"/>
-        <PackageReference Include="MongoDB.Bson" Version="2.24.0" />
-        <PackageReference Include="MongoDB.Driver" Version="2.24.0" />
-        <PackageReference Include="MongoDB.Driver.Core" Version="2.24.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
     </ItemGroup>
 
@@ -32,6 +29,10 @@
       <Reference Include="MongoDB.Driver">
         <HintPath>..\..\..\..\..\..\.nuget\packages\mongodb.driver\2.23.1\lib\netstandard2.1\MongoDB.Driver.dll</HintPath>
       </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DATABASE_library\DATABASE_library.csproj" />
     </ItemGroup>
 
 </Project>
