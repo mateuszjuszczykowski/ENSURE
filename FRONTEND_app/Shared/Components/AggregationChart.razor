@@ -1,0 +1,24 @@
+@using DATABASE_library.Models.Data
+
+@code {
+    [Parameter] public ChartData ChartData { get; set; } = default!;
+    [Parameter] public BarChartOptions ChartOptions { get; set; } = default!;
+    [Parameter] public string ChartTitle { get; set; } = default!;
+    [Parameter] public double TotalValue { get; set; }
+
+    private BarChart barChart;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await barChart.InitializeAsync(ChartData, ChartOptions, new string[] { "ChartDataLabels" });
+        }
+    }
+}
+
+<div>
+    <h4>@ChartTitle</h4>
+    <BarChart @ref="barChart" Width="500" Height="300" />
+    <p>Total: @TotalValue</p>
+</div>

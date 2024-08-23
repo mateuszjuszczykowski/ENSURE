@@ -11,10 +11,10 @@ public class HomeController : Controller
     private readonly ILogger<HomeController> _logger;
     private readonly DbHandler _dbHandler;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(ILogger<HomeController> logger, AppDbContext context)
     {
         _logger = logger;
-        _dbHandler = new DbHandler();
+        _dbHandler = new DbHandler(context);
     }
 
     public IActionResult Index()

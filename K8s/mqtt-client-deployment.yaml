@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mqtt-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mqtt-client
+  template:
+    metadata:
+      labels:
+        app: mqtt-client
+    spec:
+      containers:
+        - name: mqtt-client
+          image: mqtt_client
+          env:
+            - name: DATABASE_URL
+              value: "Host=host.docker.internal;Port=5432;Database=ENSURE;Username=postgres;Password=password;"
+            - name: MQTT
+              value: "mqtt_broker"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mqtt-client
+spec:
+  selector:
+    app: mqtt-client
+  ports:
+    - protocol: TCP
+      port: 1883
+      targetPort: 1883

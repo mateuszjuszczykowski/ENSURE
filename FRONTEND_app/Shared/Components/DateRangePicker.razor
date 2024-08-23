@@ -1,0 +1,45 @@
+@using System
+
+<div class="date-picker-container">
+    <div>
+        <label class="date-picker-label">Start Date/Time:</label>
+        <input type="datetime-local" @bind="StartDateTime" class="date-picker-input" />
+    </div>
+
+    <div>
+        <label class="date-picker-label">End Date/Time:</label>
+        <input type="datetime-local" @bind="EndDateTime" class="date-picker-input" />
+    </div>
+
+    <div class="date-picker-buttons">
+        <button class="date-picker-button" @onclick="() => SetPreset(TimeSpan.FromMinutes(5))">5 Minutes</button>
+        <button class="date-picker-button" @onclick="() => SetPreset(TimeSpan.FromMinutes(15))">15 Minutes</button>
+        <button class="date-picker-button" @onclick="() => SetPreset(TimeSpan.FromMinutes(30))">30 Minutes</button>
+        <button class="date-picker-button" @onclick="() => SetPreset(TimeSpan.FromHours(1))">1 Hour</button>
+        <button class="date-picker-button" @onclick="() => SetPreset(TimeSpan.FromHours(3))">3 Hours</button>
+        <button class="date-picker-button" @onclick="() => SetPreset(TimeSpan.FromHours(6))">6 Hours</button>
+        <button class="date-picker-button" @onclick="() => SetPreset(TimeSpan.FromHours(12))">12 Hours</button>
+        <button class="date-picker-button" @onclick="() => SetPreset(TimeSpan.FromDays(1))">1 Day</button>
+        <button class="date-picker-button" @onclick="() => SetPreset(TimeSpan.FromDays(3))">3 Days</button>
+        <button class="date-picker-button" @onclick="() => SetPreset(TimeSpan.FromDays(7))">1 Week</button>
+        <button class="date-picker-button" @onclick="() => SetPreset(TimeSpan.FromDays(30))">1 Month</button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public DateTime StartDateTime { get; set; } = DateTime.Now.AddHours(-3);
+
+    [Parameter]
+    public DateTime EndDateTime { get; set; } = DateTime.Now;
+
+    [Parameter]
+    public EventCallback<(DateTime Start, DateTime End)> OnDateRangeChanged { get; set; }
+
+    private void SetPreset(TimeSpan duration)
+    {
+        StartDateTime = DateTime.Now.Subtract(duration);
+        EndDateTime = DateTime.Now;
+        OnDateRangeChanged.InvokeAsync((StartDateTime, EndDateTime));
+    }
+}

@@ -1,0 +1,69 @@
+<!-- FRONTEND_app/Shared/components/Measurement/MeasurementForm.razor -->
+@using FRONTEND_app.Data
+@inject ApiService ApiService
+@code {
+    [Parameter]
+    public EventCallback LoadMeasurements { get; set; } = default!;
+    
+    private string deviceID = "9437412";
+    public string measurementName = $"ms_{DateTime.Now:MM/dd_HH:mm:ss}";
+    public string categoryName =  "default";
+    private DateTime measurementStartDate = DateTime.Now.AddHours(-0.5);
+    private DateTime measurementEndDate = DateTime.Now;
+    
+    private async Task SetMeasurement()
+    {
+        await ApiService.SetMeasurement(deviceID, measurementName, categoryName, measurementStartDate, measurementEndDate);
+        await LoadMeasurements.InvokeAsync();
+    }
+
+    private async Task StartMeasurement()
+    {
+        Console.WriteLine($"name: {measurementName}, category: {categoryName}");
+        await ApiService.StartMeasurement(deviceID, measurementName, categoryName);
+        await LoadMeasurements.InvokeAsync();
+    }
+
+    private async Task EndMeasurement()
+    {
+        await ApiService.EndMeasurement(deviceID);
+        await LoadMeasurements.InvokeAsync();
+    }
+}    
+<div class="measurement-form">
+    <h3>Measurements</h3>
+    <div class="form-row">
+        <div class="form-column">
+            <div class="form-group">
+                <label for="deviceId">Device ID</label>
+                <input type="text" id="deviceId" @bind="deviceID" placeholder="Device ID" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label for="measurementName">Measurement Name</label>
+                <input type="text" id="measurementName" @bind="measurementName" placeholder="Measurement Name" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label for="categoryName">Category Name</label>
+                <input type="text" id="categoryName" @bind="categoryName" placeholder="Category Name" class="form-control" />
+            </div>
+        </div>
+        <div class="form-column">
+            <div class="form-group">
+                <label for="startDate">Start Date</label>
+                <input type="datetime-local" id="startDate" @bind="measurementStartDate" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label for="endDate">End Date</label>
+                <input type="datetime-local" id="endDate" @bind="measurementEndDate" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Controls</label>
+                <div class="form-actions">
+                    <Button Color="ButtonColor.Primary" Type="ButtonType.Button" Size="ButtonSize.Medium" @onclick="StartMeasurement"> Start </Button>
+                    <Button Color="ButtonColor.Danger" Type="ButtonType.Button" Size="ButtonSize.Medium" @onclick="EndMeasurement"> End </Button>
+                    <Button Color="ButtonColor.Success" Type="ButtonType.Button" Size="ButtonSize.Medium" @onclick="SetMeasurement"> Set </Button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

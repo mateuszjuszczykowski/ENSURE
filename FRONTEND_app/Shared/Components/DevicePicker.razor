@@ -1,0 +1,51 @@
+@inject IJSRuntime JSRuntime
+
+@* TODO: finish this component, not first priority *@
+
+<div class="device-picker">
+    <select @onchange="HandleDeviceChange">
+        <option value="9437412">Tasmota</option>
+        <option value="21370911420">Mock Data</option>
+        <option value="new">Add New Device</option>
+    </select>
+    @if (isAddingNewDevice)
+    {
+        <input type="text" @bind="newDeviceId" placeholder="Enter new device ID" />
+        <button @onclick="SaveNewDevice">Save</button>
+    }
+</div>
+
+@code {
+    private string selectedDeviceId = "21370911420";
+    private bool isAddingNewDevice = false;
+    private string newDeviceId = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        selectedDeviceId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "selectedDeviceId") ?? "21370911420";
+    }
+
+    private async Task HandleDeviceChange(ChangeEventArgs e)
+    {
+        selectedDeviceId = e.Value.ToString();
+        if (selectedDeviceId == "new")
+        {
+            isAddingNewDevice = true;
+        }
+        else
+        {
+            isAddingNewDevice = false;
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "selectedDeviceId", selectedDeviceId);
+        }
+    }
+
+    private async Task SaveNewDevice()
+    {
+        if (!string.IsNullOrEmpty(newDeviceId))
+        {
+            selectedDeviceId = newDeviceId;
+            isAddingNewDevice = false;
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "selectedDeviceId", selectedDeviceId);
+        }
+    }
+}

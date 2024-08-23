@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  mqtt_broker: #todo: add external mqtt broker
+    image: mqtt_broker
+    build:
+      context: .
+      dockerfile: MQTT_broker/Dockerfile
+    ports:
+        - "1883:1883"
+        - "9001:9001"
+
+  mqtt_client:
+    image: mqtt_client
+    build:
+      context: .
+      dockerfile: MQTT_client/Dockerfile
+    depends_on:
+      - mqtt_broker
+    environment:
+      - DATABASE_URL=Host=host.docker.internal;Port=5432;Database=ENSURE;Username=postgres;Password=password;
+      - MQTT=mqtt_broker
+
+  data_processor:
+    image: data_processor
+    build:
+      context: .
+      dockerfile: DATA_processor/Dockerfile
+    depends_on:
+      - mqtt_client
+    environment:
+      - DATABASE_URL=Host=host.docker.internal;Port=5432;Database=ENSURE;Username=postgres;Password=password;
+      - MQTT=mqtt_broker
+
+  api_service:
+    image: api_service
+    build:
+      context: .
+      dockerfile: API_service/Dockerfile
+    ports:
+        - "5025:80"
+    environment:
+        - DATABASE_URL=Host=host.docker.internal;Port=5432;Database=ENSURE;Username=postgres;Password=password;
+
+  frontend_app:
+    image: frontend_app
+    build:
+      context: .
+      dockerfile: FRONTEND_app/Dockerfile
+    depends_on:
+        - api_service
+    ports:
+        - "5258:80"
+    environment:
+      - API_URL=http://api_service:80

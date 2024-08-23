@@ -1,0 +1,44 @@
+﻿@page "/overview"
+@using FRONTEND_app.Data
+@using static DATABASE_library.Models.Data.DataModel
+@using DATABASE_library
+@using FRONTEND_app.Shared.Components
+@using Microsoft.EntityFrameworkCore.Query
+@inject ApiService ApiService
+
+<PageTitle>Overview</PageTitle>
+
+<h1>Overview @EndDateTime</h1>
+
+<DateRangePicker OnDateRangeChanged="HandleDateChanged" />
+<div class="mt-5">
+    <Button Color="ButtonColor.Primary" Type="ButtonType.Button" Size="ButtonSize.Small" @onclick="FetchData"> Fetch Data </Button>
+</div>
+
+<div>
+    <ReadingChart @ref="currentChart" DeviceId="9437412" StartDateTime="StartDateTime" EndDateTime="EndDateTime" DataLabel="Current" DataSelector="x => x.Current" FetchDataCallback="FetchData" />
+    <ReadingChart @ref="voltageChart" DeviceId="9437412" StartDateTime="StartDateTime" EndDateTime="EndDateTime" DataLabel="Voltage" DataSelector="x => x.Voltage" FetchDataCallback="FetchData" />
+    <ReadingChart @ref="powerChart" DeviceId="9437412" StartDateTime="StartDateTime" EndDateTime="EndDateTime" DataLabel="Power" DataSelector="x => x.Power" FetchDataCallback="FetchData" />
+</div>
+
+@code {
+    private ReadingChart currentChart = default!;
+    private ReadingChart voltageChart = default!;
+    private ReadingChart powerChart = default!;
+    private DateTime StartDateTime = DateTime.Now.AddHours(-3);
+    private DateTime EndDateTime = DateTime.Now;
+
+    private async void HandleDateChanged((DateTime Start, DateTime End) dateRange)
+    {
+        StartDateTime = dateRange.Start;
+        EndDateTime = dateRange.End;
+        await FetchData();
+    }
+
+    private async Task FetchData()
+    {
+        await currentChart.FetchData();
+        await voltageChart.FetchData();
+        await powerChart.FetchData();
+    }
+}

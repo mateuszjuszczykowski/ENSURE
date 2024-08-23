@@ -1,12 +1,15 @@
-﻿using MongoDB.Bson;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DATABASE_library;
+namespace DATABASE_library.Models.Data;
 
 public class RawDataModel
 {
-    public BsonObjectId _id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public string _id { get; set; }
     public Payload Payload { get; set; }
-    public string deviceID { get; set; }
+    public string DeviceID { get; set; }
 }
 
 public class Payload

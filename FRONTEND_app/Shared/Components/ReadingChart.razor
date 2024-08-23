@@ -1,0 +1,101 @@
+@using FRONTEND_app.Data
+@using static DATABASE_library.Models.Data.DataModel
+@using DATABASE_library
+@using DATABASE_library.Models.Data
+@using Microsoft.EntityFrameworkCore.Query
+@inject ApiService ApiService
+
+<div>
+    <LineChart @ref="lineChart" Width="1000" Height="300" />
+</div>
+
+@code {
+    [Parameter] public string DeviceId { get; set; } = default!;
+    [Parameter] public DateTime StartDateTime { get; set; } = DateTime.Now.AddHours(-3);
+    [Parameter] public DateTime EndDateTime { get; set; } = DateTime.Now;
+    [Parameter] public string DataLabel { get; set; } = "Current";
+    [Parameter] public Func<DataModel, double> DataSelector { get; set; } = x => x.Current;
+    [Parameter] public EventCallback FetchDataCallback { get; set; }
+
+    private LineChart lineChart = default!;
+    private LineChartOptions lineChartOptions = default!;
+    private ChartData chartData = default!;
+    private List<string> labels = default!;
+    private bool isFirstRender = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        lineChartOptions = GetLineChartOptions();
+        chartData = new ChartData { Labels = GetDefaultLabels(), Datasets = GetDefaultDatasets() };
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!isFirstRender)
+        {
+            await FetchData();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isFirstRender = false;
+            await lineChart.InitializeAsync(chartData, lineChartOptions);
+            await FetchData();
+        }
+    }
+
+    public async Task FetchData()
+    {
+        var data = await ApiService.getDataAsync(DeviceId, StartDateTime, EndDateTime);
+        var selectedData = data.Select(DataSelector).ToList();
+        var timestamps = data.Select(x => x.Timestamp).ToList();
+        chartData.Labels = timestamps.Select(x => x.ToLocalTime().ToString("dd-mm HH:mm")).ToList();
+        // var labels = GenerateTimeframeLabels(StartDateTime, EndDateTime);
+        chartData.Datasets = new List<IChartDataset>(){ new LineChartDataset { Label = DataLabel, Data = selectedData } };
+        await lineChart.UpdateAsync(chartData, lineChartOptions);
+    }
+
+    private List<string> GetDefaultLabels()
+    {
+        return new List<string> { DataLabel };
+    }
+
+    private List<IChartDataset> GetDefaultDatasets()
+    {
+        return new List<IChartDataset>
+        {
+            new LineChartDataset
+            {
+                Data = new List<double>(),
+                BackgroundColor = "rgb(88, 80, 141)",
+                BorderColor = "rgb(88, 80, 141)",
+                BorderWidth = 2,
+                HoverBorderWidth = 4,
+                PointBackgroundColor = "rgb(88, 80, 141)",
+                PointBorderColor = "rgb(88, 80, 141)",
+                PointRadius = 0,
+                PointHoverRadius = 4,
+            },
+        };
+    }
+
+    private LineChartOptions GetLineChartOptions()
+    {
+        var options = new LineChartOptions
+        {
+            Interaction = { Mode = InteractionMode.Index },
+            Plugins = { Title = new ChartPluginsTitle { Text = "Readings", Display = true, Font = new ChartFont { Size = 15 } } },
+            Responsive = true,
+            Scales =
+            {
+                Y = { Title = new ChartAxesTitle { Text = DataLabel, Display = true } }
+            }
+        };
+        options.Scales.X.Title = new ChartAxesTitle { Text = "Time", Display = true };
+        options.Scales.X.Ticks = new ChartAxesTicks() {Major = new ChartAxesTicksMajor() {Enabled = true}};
+        return options;
+    }
+}

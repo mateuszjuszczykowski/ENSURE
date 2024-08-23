@@ -1,5 +1,9 @@
+using System.ComponentModel;
+using System.Dynamic;
+using System.Text.Json;
 using MQTT_client.config;
 using DATABASE_library;
+using Microsoft.EntityFrameworkCore;
 
 namespace mqtt_client;
 
@@ -10,20 +14,20 @@ public class MqttClientWorker: BackgroundService
     private static double BytesDivider => 1048576.0; // 1024 * 1024
     private readonly string _serviceName = "MQTT Client";
     private DbHandler _dbHandler;
-    
-    public MqttClientWorker(MqttClientConfig mqttClientConfig, string serviceName)
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+
+    public MqttClientWorker(MqttClientConfig mqttClientConfig, string serviceName, IServiceScopeFactory scopeFactory)
     {
         this.MqttClientConfig = mqttClientConfig; 
         this._serviceName = serviceName;
         this._logger = LoggerConfig.GetLoggerConfiguration().CreateLogger();
-        this._dbHandler = new DbHandler();
-        
-        _logger.Information("Starting service");
-        
+        _serviceScopeFactory = scopeFactory;
     }
     
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
+        _logger.Information("Starting service");
+
         var options = new MqttClientOptionsBuilder()
             .WithClientId(MqttClientConfig.ClientId)
             .WithTcpServer(MqttClientConfig.Broker, MqttClientConfig.Port)
@@ -60,6 +64,9 @@ public class MqttClientWorker: BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
+            using var scope = _serviceScopeFactory.CreateScope();
+            _dbHandler = new DbHandler(scope.ServiceProvider.GetRequiredService<AppDbContext>());
+
             LogMemoryInformation();
             await Task.Delay(MqttClientConfig.DelayInMilliSeconds, stoppingToken);
         }
@@ -77,6 +84,8 @@ public class MqttClientWorker: BackgroundService
         
         var topicParts = args.ApplicationMessage?.Topic.Split('/');
         var deviceId = topicParts.Length > 2 ? topicParts[2] : "unknown";
+        
+        _logger.Information($"payload: {payload}");
     
         if(payload is null)
         {
@@ -94,7 +103,8 @@ public class MqttClientWorker: BackgroundService
             payloadWithId,
             args.ApplicationMessage?.QualityOfServiceLevel,
             args.ApplicationMessage?.Retain);
-        _dbHandler.InsertMessage(payloadWithId, "RAW");
+
+        _dbHandler.InsertRawMessage(payloadWithId);
     }
     
     private void LogMemoryInformation()

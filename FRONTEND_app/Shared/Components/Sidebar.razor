@@ -1,0 +1,14 @@
+<div class="sidebar">
+    @foreach (var item in NavItems)
+    {
+        <NavLink class="nav-link" href="@item.Href" Match="@item.Match">
+            <Icon Name="@item.IconName" />
+            @item.Text
+        </NavLink>
+    }
+    test
+</div>
+
+@code {
+    [Parameter] public IEnumerable<NavItem> NavItems { get; set; } = Enumerable.Empty<NavItem>();
+}

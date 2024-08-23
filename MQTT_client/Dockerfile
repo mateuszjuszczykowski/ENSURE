@@ -4,6 +4,7 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["MQTT_client/MQTT_client.csproj", "MQTT_client/"]
+COPY ["DATABASE_library/DATABASE_library.csproj", "DATABASE_library/"]
 RUN dotnet restore "MQTT_client/MQTT_client.csproj"
 COPY . .
 WORKDIR "/src/MQTT_client"
@@ -15,4 +16,4 @@ RUN dotnet publish "MQTT_client.csproj" -c Release -o /app/publish /p:UseAppHost
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "MQTT_client.dll"]
+ENTRYPOINT ["dotnet", "mqtt_client.dll"]

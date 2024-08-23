@@ -119,11 +119,12 @@ public class Emulator: BackgroundService
     
     private async Task sendPeriodicData(IMqttClient client, CancellationToken stoppingToken)
     {
-        await Task.Delay(500, stoppingToken);
+        await Task.Delay(1000, stoppingToken);
         var data = _dataGenerator.GenerateData();
-        var payload = JsonSerializer.Serialize(data);
+        var payload = JsonSerializer.Serialize(data.Payload);
+        _logger.Information($"Data: {payload}");
         var message = new MqttApplicationMessageBuilder()
-            .WithTopic("tele/tasmota/SENSOR")
+            .WithTopic("tele/tasmota/21370911240/SENSOR")
             .WithPayload(payload)
             .WithRetainFlag()
             .Build();

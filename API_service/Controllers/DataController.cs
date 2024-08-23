@@ -1,9 +1,13 @@
+using System.Globalization;
+using System.Net;
 using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
 using DATABASE_library;
+using DATABASE_library.Models.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
-using MongoDB.Driver;
+using Newtonsoft.Json;
+
 
 namespace API_service.Controllers;
 
@@ -12,44 +16,46 @@ namespace API_service.Controllers;
 public class DataController: ControllerBase
 {
     private readonly DbHandler _dbHandler;
-
-
+    
     public DataController(DbHandler handler)
     {
         _dbHandler = handler;
     }
 
-    [HttpGet(Name = "GetAllData")]
-    [Authorize]
-    public IActionResult GetAllData([FromQuery]int? limit, [FromQuery]DateTime? startDate, [FromQuery]DateTime? endDate)
+    [HttpGet(Name = "GetData")]
+    // [Authorize]
+    public async Task<IActionResult> GetData([FromQuery]string? deviceId, [FromQuery] string start, [FromQuery]string end)
     {
-        List<DataModel> data = _dbHandler.GetAllData("DATA");
-        if (limit != null)
+        if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(start) || string.IsNullOrEmpty(end))
         {
-            data = data.Take((int) limit).ToList();
+            return BadRequest();
         }
-        if (startDate != null && endDate != null)
-        {
-            data = data.Where(d => d.Timestamp >= startDate && d.Timestamp <= endDate).ToList();
-        }
-        return Ok(data);
-    }
+        
+        var startDate = DateTime.Parse(start);
+        var endDate = DateTime.Parse(end);
+        
+       // specify kind of datetime to UTC
+       startDate = DateTime.SpecifyKind(startDate, DateTimeKind.Utc);
+       endDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc);
+        
+        var data = _dbHandler.GetData("DATA", deviceId, startDate, endDate);
 
-    // [HttpPost("transfer/{id}")]
-    // public async Task<IActionResult> TransferData(string id)
-    // {
-    //     var filter = Builders<DataModel>.Filter.Eq(d => d._id, new ObjectId(id));
-    //     var update = Builders<DataModel>.Update.Set(d => d.State, "in transfer");
-    //     await _dataCollection.UpdateOneAsync(filter, update);
-    //
-    //     var data = await _dataCollection.Find(filter).FirstOrDefaultAsync();
-    //
-    //     // Send data to client and wait for confirmation
-    //     // ...
-    //
-    //     update = Builders<DataModel>.Update.Set(d => d.State, "transferred");
-    //     await _dataCollection.UpdateOneAsync(filter, update);
-    //
-    //     return Ok();
-    // }
+        string? response;
+        if(data.Count == 0)
+        {
+            data = new List<DataModel>() { };
+            response = JsonConvert.SerializeObject(data);
+            return NotFound(response);
+        }
+        response = JsonConvert.SerializeObject(data);
+        return Ok(response);
+    }
+    
+    [HttpGet("all", Name = "GetAllData")]
+    public async Task<IActionResult> GetAllData()
+    {
+        var data = _dbHandler.GetAllData("DATA").ToList();
+        var response = JsonConvert.SerializeObject(data);
+        return Ok(response);
+    }
 }

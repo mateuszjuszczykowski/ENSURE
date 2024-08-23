@@ -1,0 +1,123 @@
+﻿<!-- FRONTEND_app/Pages/Measurements.razor -->
+@page "/measurements"
+@using FRONTEND_app.Data
+@using DATABASE_library.Models.Data
+@using DATABASE_library
+@using static DATABASE_library.AggregationType
+@using FRONTEND_app.Shared.Components.Measurement
+@inject ApiService ApiService
+
+@* todo: make api /all return data count not whole data *@
+
+<MeasurementForm LoadMeasurements="LoadMeasurements"/>
+
+<MeasurementTable @ref="chartTable"
+                  Measurements="@measurements"
+                  RemoveMeasurement="RemoveMeasurement"
+                  ChooseMeasurement="ChooseMeasurement" />
+
+    <div class="input-group">
+        <div class="input-item">
+            <label for="price">Set Price (PLN/kWh):</label>
+            <input type="number" id="price" @bind="price" step="0.01" />
+        </div>
+
+        <div class="input-item">
+            <label for="refreshTimer">Refresh Timer:</label>
+            <select id="refreshTimer" @bind="refreshTimer" @bind:after="OnRefreshTimerChanged">
+                <option value="5000">5 seconds</option>
+                <option value="10000">10 seconds</option>
+                <option value="30000">30 seconds</option>
+                <option value="60000">1 minute</option>
+            </select>
+        </div>
+
+        <div class="input-item">
+            <label for="aggregationTime">Aggregation Time:</label>
+            <select id="aggregationTime" @bind="aggregationType">
+                @foreach (var value in Enum.GetValues(typeof(AggregationType)))
+                {
+                    <option value="@value">@value</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div>
+        @if (selectedMeasurement != null)
+        {
+            <p>Selected measurement: @selectedMeasurement.Name</p>
+            <MeasurementCharts @ref="measurementCharts"
+                               Measurement="@selectedMeasurement"
+                               Price="@price"
+                               AggregationType="@aggregationType"
+                               />
+        }
+        else
+        {
+            <p>No measurement selected</p>
+        }    
+    </div>
+
+@code {
+    private double price = 0.5;
+    private int refreshTimer = 10000; // Default to 10 seconds
+    private AggregationType aggregationType = AggregationType.Daily; // Default to Daily
+    
+    private List<MeasurementModel> measurements = new List<MeasurementModel>();
+    private Timer timer;
+    private MeasurementModel? selectedMeasurement = null;
+    private bool isMeasurementChanged = false;
+
+    private MeasurementCharts measurementCharts;
+    private MeasurementTable chartTable;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMeasurements();
+        timer = new Timer(UpdateTimespanAndData, null, 0, refreshTimer); // Update every 10 seconds
+    }
+
+    private async Task LoadMeasurements()
+    {
+        measurements = await ApiService.GetMeasurements();
+    }
+
+    private async Task RemoveMeasurement(string measurementID)
+    {
+        if(selectedMeasurement!= null && selectedMeasurement._id == measurementID)
+        {
+            selectedMeasurement = null;
+        }
+        await ApiService.RemoveMeasurement(measurementID);
+        await LoadMeasurements();
+    }
+
+    private async Task ChooseMeasurement(string measurementID)
+    {
+        var measurement = measurements.FirstOrDefault(m => m._id == measurementID && m.Data.Count > 0);
+        selectedMeasurement = measurement;
+    }
+
+
+    private async void UpdateTimespanAndData(object? state)
+    {
+        await InvokeAsync(async () =>
+        {
+            await LoadMeasurements();
+            chartTable.Refresh(measurements);
+            if(selectedMeasurement != null && !selectedMeasurement.isFinished)
+            {
+                await ChooseMeasurement(selectedMeasurement._id);
+                await measurementCharts.RefreshData(selectedMeasurement);
+            }
+        });
+    }
+    
+    private void OnRefreshTimerChanged()
+    {
+        timer.Change(0, refreshTimer);
+    }
+
+
+}

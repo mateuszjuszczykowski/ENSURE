@@ -4,7 +4,7 @@ public class MqttClientConfig
 {
     public int Port { get; set; } = 1883;
     
-    public string Broker { get; set; } = "localhost";
+    public string Broker { get; set; } = Environment.GetEnvironmentVariable("MQTT") ?? "localhost";
     
     public string ClientId { get; set; } = "dotnet-client";
     
@@ -17,6 +17,7 @@ public class MqttClientConfig
     public List<string> Topics { get; set; } = new()
     {
         "tele/tasmota/+/SENSOR", // gathers data from ALL tasmota devices
+        "tele/tasmota/SENSOR" //emulator
         //"tasmota/discovery/*"
     };
 }

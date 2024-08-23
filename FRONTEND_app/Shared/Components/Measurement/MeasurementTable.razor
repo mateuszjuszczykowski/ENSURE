@@ -1,0 +1,75 @@
+<!-- FRONTEND_app/Shared/components/Measurement/MeasurementTable.razor -->
+@using DATABASE_library.Models.Data
+@code {
+
+    [Parameter]
+    public List<MeasurementModel> Measurements { get; set; } = new List<MeasurementModel>();
+    
+    [Parameter]
+    public EventCallback<string> RemoveMeasurement { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback<string> ChooseMeasurement { get; set; } = default!;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        StateHasChanged();
+    }
+
+    public async void Refresh(List<MeasurementModel> measurementModels)
+    {
+        Measurements = measurementModels;
+        await OnParametersSetAsync();
+    }
+
+    private string GetTimespan(MeasurementModel measurement)
+    {
+        var endTime = measurement.EndTime ?? DateTime.Now.ToUniversalTime();
+        var timespan = endTime - measurement.StartTime!.Value;
+        return timespan.ToString("hh\\:mm\\:ss");
+    }
+    
+    private string GetCount(MeasurementModel measurement)
+    {
+        return measurement.Data.Count.ToString();
+    }
+
+}
+
+@* todo: change to Bootstrap Grid with pagination *@
+<div>
+    <h3>Existing Measurements</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Device ID</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Timespan</th>
+            <th>Data Count</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var measurement in Measurements.OrderBy(e => e.StartTime))
+        {
+            <tr>
+                <td>@measurement.DeviceId</td>
+                <td>@measurement.Name</td>
+                <td>@measurement.Category</td>
+                <td>@measurement.StartTime?.ToLocalTime().ToString("dd-MM-yyyy HH:mm:ss")</td>
+                <td>@measurement.EndTime?.ToLocalTime().ToString("dd-MM-yyyy HH:mm:ss")</td>
+                <td>@GetTimespan(measurement)</td>
+                <td>@GetCount(measurement)</td>
+                <td>
+                    <Button Color="ButtonColor.Primary" Type="ButtonType.Button" Size="ButtonSize.Small" @onclick="() => ChooseMeasurement.InvokeAsync(measurement._id)">Choose</Button>
+                    <Button Color="ButtonColor.Danger" Type="ButtonType.Button" Size="ButtonSize.Small" @onclick="() => RemoveMeasurement.InvokeAsync(measurement._id)">Remove</Button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

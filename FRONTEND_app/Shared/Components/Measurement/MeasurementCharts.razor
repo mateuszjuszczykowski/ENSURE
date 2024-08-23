@@ -1,0 +1,236 @@
+@using DATABASE_library.Models.Data
+@using FRONTEND_app.Data
+@using DATABASE_library
+@using Microsoft.AspNetCore.Identity
+
+@inject ApiService ApiService
+
+<div>
+    <h3>Measurement Charts</h3>
+    <div class="chart-group">
+        <div class="chart-inline-measure">
+            <p>Average Power: @PowerAvg w</p>
+            <LineChart @ref="powerChart" Width="500" Height="300"/>
+        </div>
+        <div class="chart-inline-measure">
+            <p>Average Voltage: @VoltageAvg v</p>
+            <LineChart @ref="voltageChart" Width="500" Height="300"/>
+        </div>
+        <div class="chart-inline-measure">
+            <p>Average Current: @CurrentAvg A</p>
+            <LineChart @ref="currentChart" Width="500" Height="300"/>
+        </div>
+    </div>
+    <div class="chart-group">
+        <div class="chart-inline-measure">
+            <p>Total Energy Usage: @EnergySum kWh</p>
+            <BarChart @ref="energyChart" Width="500" Height="300"/>
+        </div>
+        <div class="chart-inline-measure">
+            <p>Total Price: @PriceSum PLN</p>
+            <BarChart @ref="priceChart" Width="500" Height="300"/>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public MeasurementModel Measurement { get; set; } = default!;
+    [Parameter] public double Price { get; set; } = 0.5;
+    [Parameter] public AggregationType AggregationType { get; set; } = AggregationType.Daily;
+
+    private LineChartOptions powerChartOptions;
+    private LineChartOptions voltageChartOptions;
+    private LineChartOptions currentChartOptions;
+    private BarChartOptions energyChartOptions;
+    private BarChartOptions priceChartOptions;
+
+    private LineChart powerChart;
+    private LineChart voltageChart;
+    private LineChart currentChart;
+    private BarChart energyChart;
+    private BarChart priceChart;
+    
+    private ChartData PowerData = new ChartData() {};
+    private ChartData VoltageData = new ChartData() {};
+    private ChartData CurrentData = new ChartData() {};
+    
+    private ChartData EnergyData = new ChartData() {};
+    private ChartData PriceData = new ChartData() {};
+    
+    private List<DateTime> Timestamps = new List<DateTime>();
+    private List<DateTime> AggregationTimestamps = new List<DateTime>();
+    
+    private double PowerAvg = 0;
+    private double VoltageAvg = 0;
+    private double CurrentAvg = 0;
+    private double EnergySum = 0;
+    private double PriceSum = 0;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        powerChartOptions = CreateLineChartOptions("Power Readings", "Power (W)");
+        voltageChartOptions = CreateLineChartOptions("Voltage Readings", "Voltage (V)");
+        currentChartOptions = CreateLineChartOptions("Current Readings", "Current (A)");
+        energyChartOptions = CreateBarChartOptions("Energy Usage", "Energy (kWh)");
+        priceChartOptions = CreateBarChartOptions("Price", "Price (PLN)");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Console.WriteLine("FIRST RENDER!");
+            await LoadData();
+            
+            await powerChart.InitializeAsync(PowerData, powerChartOptions);
+            await voltageChart.InitializeAsync(VoltageData, voltageChartOptions);
+            await currentChart.InitializeAsync(CurrentData, currentChartOptions);
+            await energyChart.InitializeAsync(EnergyData, energyChartOptions);
+            await priceChart.InitializeAsync(PriceData, priceChartOptions);
+        }
+    }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        Console.WriteLine("PARAMETERS SET!");
+        await LoadData();
+        
+        await powerChart.UpdateAsync(PowerData, powerChartOptions);
+        await voltageChart.UpdateAsync(VoltageData, voltageChartOptions);
+        await currentChart.UpdateAsync(CurrentData, currentChartOptions);
+        await energyChart.UpdateAsync(EnergyData, energyChartOptions);
+        await priceChart.UpdateAsync(PriceData, priceChartOptions);
+    }
+
+    public async Task RefreshData(MeasurementModel measurement)
+    {
+        Measurement = measurement;
+        StateHasChanged();
+        await OnParametersSetAsync();
+    }
+
+    private async Task<bool> LoadData()
+    {
+        var powerData = Measurement.Data.Select(e => e.Power).ToList();
+        var voltageData = Measurement.Data.Select(e => e.Voltage).ToList();
+        var currentData = Measurement.Data.Select(e => e.Current).ToList();
+        Timestamps = Measurement.Data.Select(e => e.Timestamp).ToList();
+        
+        var startTimestamp = Timestamps.First();
+        var endTimestamp = Timestamps.Last();
+        
+        //todo: add energy price to parameters
+        var energyAndPriceData = await ApiService.GetAggregatedPowerAndCostData(Measurement.DeviceId, startTimestamp, endTimestamp, AggregationType, Price);
+
+        var energyData = energyAndPriceData[0].Select(e => e.Value).ToList();
+        var priceData = energyAndPriceData[1].Select(e => e.Value).ToList();
+        
+        AggregationTimestamps = energyAndPriceData[0].Select(e => e.Timestamp).ToList();
+        
+        PowerAvg = Math.Round(powerData.Average(), 2);
+        VoltageAvg = Math.Round(voltageData.Average(),2);
+        CurrentAvg = Math.Round(currentData.Average(), 3);
+        EnergySum = Math.Round(energyData.Sum(), 4);
+        PriceSum = Math.Round(priceData.Sum(), 4);
+        
+        PowerData = CreateChartData(powerData, Timestamps, false);
+        VoltageData = CreateChartData(voltageData, Timestamps, false);
+        CurrentData = CreateChartData(currentData, Timestamps, false);
+        EnergyData = CreateChartData(energyData, AggregationTimestamps, true);
+        PriceData = CreateChartData(priceData, AggregationTimestamps, true);
+
+        return true;
+    }
+    
+    private ChartData CreateChartData(List<int> data, List<DateTime> timestamps, bool isBarChart = false)
+    {
+        var chartData = new ChartData() {Labels = new List<string>(), Datasets = new List<IChartDataset>()};
+        chartData.Labels = timestamps.Select(e => e.ToString("dd-MM-yyyy HH:mm:ss")).ToList();
+        
+        if (isBarChart)
+        {
+            chartData.Datasets!.Add(new BarChartDataset
+            {
+                Label = "Data",
+                Data = data.Select(e => (double)e).ToList(),
+            });
+        }
+        else
+        {
+            chartData.Datasets!.Add(new LineChartDataset
+            {
+                Label = "Data",
+                Data = data.Select(e => (double)e).ToList(),
+                BackgroundColor = "rgba(255, 99, 132, 0.2)",
+                BorderColor = "rgb(255, 99, 132)",
+                BorderWidth = 1
+            });
+        }
+        return chartData;
+    }
+    
+    private ChartData CreateChartData(List<double> data, List<DateTime> timestamps, bool isBarChart = false)
+    {
+        var chartData = new ChartData() {Labels = new List<string>(), Datasets = new List<IChartDataset>()};
+        chartData.Labels = timestamps.Select(e => e.ToString("dd-MM-yyyy HH:mm:ss")).ToList();
+
+        if (isBarChart)
+        {
+            chartData.Datasets!.Add(new BarChartDataset
+            {
+                Label = "Data",
+                Data = data.Select(e => (double)e).ToList(),
+            });
+        }
+        else
+        {
+            chartData.Datasets!.Add(new LineChartDataset
+            {
+                Label = "Data",
+                Data = data.Select(e => (double)e).ToList(),
+                BackgroundColor = "rgba(255, 99, 132, 0.2)",
+                BorderColor = "rgb(255, 99, 132)",
+                BorderWidth = 1
+            });
+        }
+        return chartData;
+    }
+
+    private LineChartOptions CreateLineChartOptions(string title, string yAxisName)
+    {
+        return new LineChartOptions()
+        {
+            Interaction = { Mode = InteractionMode.Index },
+            Plugins =
+            {
+                Title = new ChartPluginsTitle { Text = title, Display = true, Font = new ChartFont { Size = 15 } },
+            },
+            Responsive = true,
+            Scales =
+            {
+                X = { Title = new ChartAxesTitle { Text = "Time", Display = true } },
+                Y = { Title = new ChartAxesTitle { Text = yAxisName, Display = true } }
+            }
+        };
+    }
+    
+    
+    private BarChartOptions CreateBarChartOptions(string title, string yAxisName)
+    {
+        return new BarChartOptions
+        {
+            Interaction = { Mode = InteractionMode.Index },
+            Plugins =
+            {
+                Title = new ChartPluginsTitle { Text = title, Display = true, Font = new ChartFont { Size = 15 } },
+            },
+            Responsive = true,
+            Scales =
+            {
+                X = { Title = new ChartAxesTitle { Text = "Time", Display = true } },
+                Y = { Title = new ChartAxesTitle { Text = yAxisName, Display = true } }
+            }
+        };
+    }
+    
+}

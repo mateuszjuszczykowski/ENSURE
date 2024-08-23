@@ -1,9 +1,14 @@
 using DATA_viewer;
+using DATABASE_library;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<DbHandler>();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql("Host=localhost:5432;Database=ENSURE;Username=postgres;Password=password"));
 
 var app = builder.Build();
 

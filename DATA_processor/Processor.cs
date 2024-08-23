@@ -1,6 +1,5 @@
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
 using DATABASE_library;
+using DATABASE_library.Models.Data;
 
 namespace DATA_processor;
 
@@ -8,11 +7,12 @@ public class Processor : BackgroundService
 {
     private readonly ILogger _logger;
     private DbHandler _dbHandler;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public Processor(ILogger logger)
+    public Processor(ILogger logger, IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
-        _dbHandler = new DbHandler();
+        _serviceScopeFactory = scopeFactory;
     }
     
     public override async Task StartAsync(CancellationToken cancellationToken)
@@ -25,7 +25,9 @@ public class Processor : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            var messages = _dbHandler.GetMessages("RAW");
+            using var scope = _serviceScopeFactory.CreateScope();
+            _dbHandler = new DbHandler(scope.ServiceProvider.GetRequiredService<AppDbContext>());
+            var messages = _dbHandler.GetRawMessages();
             if(messages.Count > 0)
             {
                 ProcessMessages(messages);
@@ -36,18 +38,19 @@ public class Processor : BackgroundService
         }
     }
     
-    public void ProcessMessages(List<BsonDocument> messages)
+    public void ProcessMessages(List<RawDataModel> messages)
     {
+        // fetch newe
         foreach (var message in messages)
         {
-            var rawMessage = BsonSerializer.Deserialize<RawDataModel>(message);
+            var rawMessage = message;
             var reading = rawMessage.Payload;
 
             var dataDTO = new DataModel()
             {
-                deviceID = rawMessage.deviceID,
-                Timestamp = DateTime.Parse(reading.Time),
-                TotalStartTime = DateTime.Parse(reading.ENERGY.TotalStartTime),
+                deviceID = rawMessage.DeviceID,
+                Timestamp = DateTime.Parse(reading.Time).ToUniversalTime(),
+                TotalStartTime = DateTime.Parse(reading.ENERGY.TotalStartTime).ToUniversalTime(),
                 Total = reading.ENERGY.Total,
                 Today = reading.ENERGY.Today,
                 Power = reading.ENERGY.Power,
@@ -57,6 +60,12 @@ public class Processor : BackgroundService
                 Voltage = reading.ENERGY.Voltage,
                 Current = reading.ENERGY.Current,
             };
+            
+            var measurement = _dbHandler.GetCurrentMeasurement(dataDTO.deviceID);
+            if(measurement!=null)
+            {
+                dataDTO.Measurement = measurement;
+            }
             
             _dbHandler.InsertData(dataDTO, "DATA");
             _dbHandler.RemoveMessage(message, "RAW");
