@@ -14,7 +14,9 @@ public class MeasurementController : ControllerBase
     {
         _dbHandler = handler;
     }
-
+    
+    //todo: add auto close measurement when usage drops for a certain time
+    
     [HttpGet("all", Name = "GetMeasurements")]
     public IActionResult GetMeasurements()
     {

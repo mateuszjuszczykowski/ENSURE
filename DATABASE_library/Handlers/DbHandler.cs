@@ -57,14 +57,20 @@ public class DbHandler
         var start = startDate.ToUniversalTime();
         var end = endDate.ToUniversalTime();
         var collection = Context.Data;
-        var documents = collection.Where(d => d.Timestamp >= start && d.Timestamp <= end).ToList();
+        var documents = collection
+            .Where(d => d.Timestamp >= start && d.Timestamp <= end)
+            .OrderBy(d => d.Timestamp)
+            .ToList();
         return documents;
     }
     
     public List<DataModel> GetAllData(string collectionName)
     {
         var collection = Context.Data;
-        var documents = collection.ToList();
+        var documents = collection
+            .Include(d => d.Measurement)
+            .OrderBy(d => d.Timestamp)
+            .ToList();
         return documents;
     }
     
@@ -204,4 +210,5 @@ public class DbHandler
         Context.Measurements.Remove(measurement);
         Context.SaveChanges();
     }
+    
 }

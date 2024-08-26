@@ -1,8 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using BlazorBootstrap;
 using DATABASE_library;
 using DATABASE_library.Models.Data;
 using Newtonsoft.Json;
+using FilterItem = BlazorBootstrap.FilterItem;
+using SortDirection = BlazorBootstrap.SortDirection;
 
 namespace FRONTEND_app.Data;
 
@@ -13,6 +16,7 @@ public class ApiService
     private readonly string _dataEndpoint = "/Data";
     private readonly string _aggregationEndpoint = "/Aggregation";
     private readonly string _measurementEndpoint = "/Measurement";
+    private readonly string _summaryEndpoint = "/Summary";
     
     public ApiService(HttpClient httpClient)
     {
@@ -135,5 +139,19 @@ public class ApiService
         await _httpClient.DeleteAsync(uri);
     }
 
+    //Summary
+    
+    public async Task<List<SummaryModel>> GetSummaryData(string deviceId)
+    {
+        var query = $"deviceId={deviceId}";
+        var uri = $"{_baseUrl}{_summaryEndpoint}?{query}";
+        var data = await _httpClient.GetFromJsonAsync<List<SummaryModel>>(uri);
+        return data;
+    }
 
+    public class SummaryResponse
+    {
+        public List<SummaryModel> Data { get; set; }
+        public int TotalCount { get; set; }
+    }
 }

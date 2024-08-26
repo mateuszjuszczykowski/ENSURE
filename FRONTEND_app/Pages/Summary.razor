@@ -1,0 +1,77 @@
+﻿@page "/summary"
+@using FRONTEND_app.Data
+@using DATABASE_library.Models.Data
+@using SortDirection = BlazorBootstrap.SortDirection
+@inject ApiService ApiService
+
+<PageTitle>Summary</PageTitle>
+
+<h1>Summary</h1>
+
+@if (summaryModels != null)
+{
+        
+    <Grid TItem="SummaryModel"
+          Class="table table-striped table-bordered table-hover"
+          DataProvider="SummaryDataProvider"
+          AllowFiltering="true"
+          AllowSorting="true"
+          Responsive="true">
+        
+        <GridColumn TItem="SummaryModel" HeaderText="Category" PropertyName="Category" SortKeySelector="model => model.Category" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
+            @context.Category
+        </GridColumn>
+
+        <GridColumn TItem="SummaryModel" HeaderText="Name" PropertyName="Name" SortKeySelector="model => model.Name" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
+            @{if (context.Name == null) { <text>N/A</text>; } else { <text>@context.Name</text>; }}
+        </GridColumn>
+
+        <GridColumn TItem="SummaryModel" HeaderText="Start Time" PropertyName="StartTime" SortKeySelector="model => model.StartTime" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
+            @context.StartTime
+        </GridColumn>
+
+        <GridColumn TItem="SummaryModel" HeaderText="End Time" PropertyName="EndTime" SortKeySelector="model => model.EndTime" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
+            @context.EndTime
+        </GridColumn>
+
+        <GridColumn TItem="SummaryModel" HeaderText="Duration" PropertyName="Duration" SortKeySelector="model => model.Duration" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
+            @context.Duration
+        </GridColumn>
+
+        <GridColumn TItem="SummaryModel" HeaderText="Number of Records" PropertyName="NumberOfRecords" SortKeySelector="model => model.NumberOfRecords" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
+            @context.NumberOfRecords
+        </GridColumn>
+
+        <GridColumn TItem="SummaryModel" HeaderText="Total Usage (kWh)" PropertyName="TotalUsage" SortKeySelector="model => model.TotalUsage" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
+            @Math.Round(context.TotalUsage, 4)
+        </GridColumn>
+
+        <GridColumn TItem="SummaryModel" HeaderText="Total Price" PropertyName="TotalPrice" SortKeySelector="model => model.TotalPrice" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
+            @Math.Round(context.TotalPrice, 4)
+        </GridColumn>
+        
+    </Grid>
+
+}
+else
+{
+    <p>Data loading or no data to display</p>
+}
+
+@code {
+    private List<SummaryModel> summaryModels = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var data = await ApiService.GetSummaryData("9437412");
+        summaryModels = data;
+    }
+
+    private async Task<GridDataProviderResult<SummaryModel>> SummaryDataProvider(GridDataProviderRequest<SummaryModel> request)
+    {
+        if (summaryModels is null)
+            summaryModels = await ApiService.GetSummaryData("9437412");
+        return await Task.FromResult(request.ApplyTo(summaryModels));
+    }
+
+}
