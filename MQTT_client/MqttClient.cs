@@ -38,19 +38,31 @@ public class MqttClientWorker: BackgroundService
         var factory = new MqttFactory();
         var mqttClient = factory.CreateMqttClient();
         var client = mqttClient;
-       
-        try
+        
+        int maxRetries = 10;
+        int delayBetweenRetries = 10000; // 2 seconds
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            var response = await client.ConnectAsync(options, CancellationToken.None);
-            _logger.Information("MqttClient connected with result: {ResultCode}", response.ResultCode);
-            foreach (var topic in MqttClientConfig.Topics)
+            try
             {
-                await client.SubscribeAsync(topic, MqttQualityOfServiceLevel.AtMostOnce, CancellationToken.None);
+                var response = await client.ConnectAsync(options, CancellationToken.None);
+                _logger.Information("MqttClient connected with result: {ResultCode}", response.ResultCode);
+                foreach (var topic in MqttClientConfig.Topics)
+                {
+                    await client.SubscribeAsync(topic, MqttQualityOfServiceLevel.AtMostOnce, CancellationToken.None);
+                }
+                break; // Exit the loop if connection is successful
             }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
+            catch (Exception e)
+            {
+                _logger.Error("Attempt {Attempt}/{MaxRetries} - Failed to connect to MQTT broker", attempt, maxRetries);
+                if (attempt == maxRetries)
+                {
+                    throw new TimeoutException("Failed to connect to MQTT broker after multiple attempts.");
+                }
+                await Task.Delay(delayBetweenRetries);
+            }
         }
        
         client.ApplicationMessageReceivedAsync += InterceptMessageAsync;

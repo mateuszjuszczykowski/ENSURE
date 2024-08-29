@@ -1,0 +1,6 @@
+resources:
+  - mqtt-broker-deployment.yaml
+  - mqtt-client-deployment.yaml
+  - data-processor-deployment.yaml
+  - api-service-deployment.yaml
+  - frontend-app-deployment.yaml

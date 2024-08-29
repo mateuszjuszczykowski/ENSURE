@@ -14,12 +14,14 @@ spec:
     spec:
       containers:
         - name: data-processor
-          image: data_processor
+          image: data_processor:latest_local
+          imagePullPolicy: Never
           env:
             - name: DATABASE_URL
               value: "Host=host.docker.internal;Port=5432;Database=ENSURE;Username=postgres;Password=password;"
+#              value: "Host=host.docker.internal;Port=5432;Database=ENSURE;Username=postgres;Password=password;"
             - name: MQTT
-              value: "mqtt_broker"
+              value: "mqtt-broker"
 ---
 apiVersion: v1
 kind: Service

@@ -14,7 +14,8 @@ spec:
     spec:
       containers:
         - name: api-service
-          image: api_service
+          image: api_service:latest_local
+          imagePullPolicy: Never
           env:
             - name: DATABASE_URL
               value: "Host=host.docker.internal;Port=5432;Database=ENSURE;Username=postgres;Password=password;"

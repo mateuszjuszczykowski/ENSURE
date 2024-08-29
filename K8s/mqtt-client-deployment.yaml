@@ -14,12 +14,13 @@ spec:
     spec:
       containers:
         - name: mqtt-client
-          image: mqtt_client
+          image: mqtt_client:latest_local
+          imagePullPolicy: Never
           env:
             - name: DATABASE_URL
               value: "Host=host.docker.internal;Port=5432;Database=ENSURE;Username=postgres;Password=password;"
             - name: MQTT
-              value: "mqtt_broker"
+              value: "mqtt-broker"
 ---
 apiVersion: v1
 kind: Service

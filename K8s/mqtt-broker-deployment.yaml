@@ -14,7 +14,8 @@ spec:
     spec:
       containers:
         - name: mqtt-broker
-          image: mqtt_broker
+          image: mqtt_broker:latest_local
+          imagePullPolicy: Never
           ports:
             - containerPort: 1883
             - containerPort: 9001
@@ -27,9 +28,11 @@ spec:
   selector:
     app: mqtt-broker
   ports:
-    - protocol: TCP
+    - name: mqtt
+      protocol: TCP
       port: 1883
       targetPort: 1883
-    - protocol: TCP
+    - name: mqtt-ws
+      protocol: TCP
       port: 9001
       targetPort: 9001
