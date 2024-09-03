@@ -1,0 +1,122 @@
+@page "/aggregation"
+
+@using FRONTEND_app.Data
+@using static DATABASE_library.Models.Data.DataModel
+@using DATABASE_library
+@using Microsoft.EntityFrameworkCore.Query
+@inject ApiService ApiService
+
+
+@* //todo: add calculation method picker - fast with average and accurate with sum *@
+
+<div>
+    <h3>Power Chart</h3>
+    <BarChart @ref="powerChart" Width="1000" Height="300" />
+</div>
+
+<div>
+    <h3>Cost Chart</h3>
+    <BarChart @ref="costChart" Width="1000" Height="300" />
+</div>
+
+<div class="container mt-4 text-start">
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="costPerKWh" class="form-label">Cost per kWh:</label>
+            <input type="number" id="costPerKWh" class="form-control" @bind="costPerKWh" />
+        </div>
+        <div class="col-md-4">
+            <label for="selectedView" class="form-label">View:</label>
+            <select id="selectedView" class="form-select" @bind="selectedView">
+                @foreach (var view in Enum.GetValues(typeof(AggregationType)).Cast<AggregationType>())
+                {
+                    <option value="@view">@view</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="startDate" class="form-label">Start Date:</label>
+            <input type="date" id="startDate" class="form-control" @bind="startDate" />
+        </div>
+        <div class="col-md-4">
+            <label for="endDate" class="form-label">End Date:</label>
+            <input type="date" id="endDate" class="form-control" @bind="endDate" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <Button Color="ButtonColor.Primary" Type="ButtonType.Button" Size="ButtonSize.Small" @onclick="FetchData" class="btn btn-primary"> Fetch Data </Button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private BarChart powerChart = default!;
+    private BarChart costChart = default!;
+    private BarChartOptions chartOptions = default!;
+    private ChartData powerChartData = default!;
+    private ChartData costChartData = default!;
+    private double costPerKWh = 0.8;
+    private AggregationType selectedView = AggregationType.Hourly;
+    private DateTime startDate = DateTime.Now.AddDays(-1);
+    private DateTime endDate = DateTime.Now;
+    private bool isFirstRender = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        chartOptions = GetBarChartOptions();
+        powerChartData = new ChartData { Labels = new List<string>(), Datasets = new List<IChartDataset>() };
+        costChartData = new ChartData { Labels = new List<string>(), Datasets = new List<IChartDataset>() };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isFirstRender = false;
+            await powerChart.InitializeAsync(powerChartData, chartOptions, new string[] {"ChartDataLabels"});
+            await costChart.InitializeAsync(costChartData, chartOptions,new string[] {"ChartDataLabels"});
+            await FetchData();
+        }
+    }
+
+    private async Task FetchData()
+    {
+        var data = await ApiService.GetAggregatedPowerAndCostData("9437412", startDate, endDate, selectedView, costPerKWh);
+        var energyData = data[0];
+        var costData = data[1];
+        var powerData = energyData.Select(x => Math.Round(x.Value, 3)).ToList();
+        var costValues = costData.Select(x => Math.Round(x.Value, 3)).ToList();
+        var labels = energyData.Select(x => x.Timestamp.ToLocalTime().ToString("dd-MM HH:mm")).ToList();
+
+        powerChartData.Labels = labels;
+        powerChartData.Datasets = new List<IChartDataset>() { new BarChartDataset { Label = "Power", Data = powerData } };
+
+        costChartData.Labels = labels;
+        costChartData.Datasets = new List<IChartDataset>() { new BarChartDataset { Label = "Cost", Data = costValues } };
+
+        await powerChart.UpdateAsync(powerChartData, chartOptions);
+        await costChart.UpdateAsync(costChartData, chartOptions);
+    }
+
+    private BarChartOptions GetBarChartOptions()
+    {
+        var options = new BarChartOptions
+        {
+            Interaction = { Mode = InteractionMode.Index },
+            Plugins =
+            {
+                Title = new ChartPluginsTitle { Text = "Readings", Display = true, Font = new ChartFont { Size = 15 } },
+            },
+            Responsive = true,
+            Scales =
+            {
+                X = { Title = new ChartAxesTitle { Text = "Time", Display = true } },
+                Y = { Title = new ChartAxesTitle { Text = "Value", Display = true } }
+            }
+        };
+        return options;
+    }
+}

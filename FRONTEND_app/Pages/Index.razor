@@ -3,109 +3,61 @@
 @using static DATABASE_library.Models.Data.DataModel
 @using DATABASE_library
 @using Microsoft.EntityFrameworkCore.Query
-@inject ApiService ApiService
+@inject NavigationManager Navigation
 
-@* //todo: add calculation method picker - fast with average and accurate with sum *@
-<input type="number" @bind="costPerKWh" step="0.01" />
-<div>
-    <h3>Power Chart</h3>
-    <BarChart @ref="powerChart" Width="1000" Height="300" />
-</div>
+<h1>Welcome to the Project</h1>
 
-<div>
-    <h3>Cost Chart</h3>
-    <BarChart @ref="costChart" Width="1000" Height="300" />
-</div>
+<p>This project is designed to provide insights into power consumption and cost analysis. It allows users to view aggregated data, visualize it through charts, and make informed decisions based on the data.</p>
+<p>To use the software, a power measurement plug is needed. Plug is then set up via its web interface to forward messages to broker. Then all the data should be saved in database for further use.</p>
+<p>Program itself doesn't save energy, instead provides a toolset to measure, check and predict further use.</p>
+<a>Each page contains a tool for a specific purpose explained below:</a>
 
-<div>
-    <label>View:</label>
-    <select @bind="selectedView">
-        @foreach (var view in Enum.GetValues(typeof(AggregationType)).Cast<AggregationType>())
-        {
-            <option value="@view">@view</option>
-        }
-    </select>
-</div>
-
-<div>
-    <label>Start Date:</label>
-    <input type="date" @bind="startDate" />
-</div>
-
-<div>
-    <label>End Date:</label>
-    <input type="date" @bind="endDate" />
-</div>
-
-<div>
-    <Button Color="ButtonColor.Primary" Type="ButtonType.Button" Size="ButtonSize.Small" @onclick="FetchData"> Fetch Data </Button>
-</div>
+<h2>Use Cases</h2>
+<ul>
+    <li>
+        <strong>Aggregation Page:</strong> This page allows users to view aggregated power and cost data over a selected time period. Users can choose different aggregation types and view the data in chart format.
+        <br> It's supposed to be used for a quick overview of the data, mainly in case that measurement plug has been used for same device for longer period of time.
+        <br/>
+        <Button Color="ButtonColor.Primary" Type="ButtonType.Button" Size="ButtonSize.Small" @onclick="NavigateToAggregation"> Go to Aggregation Page </Button>
+    </li>
+    <li>
+        <strong>Measurements:</strong> Measurement page allows users to view, create and set measurements which are a collection of data gathered over a period of time
+        <br/> Title and category are used to divide measurements between different devices and types of measurements. One could perform multiple readings for washing machine on different modes.
+        <br/>
+        <Button Color="ButtonColor.Primary" Type="ButtonType.Button" Size="ButtonSize.Small" @onclick="NavigateToMeasurements"> Go to Measurements </Button>
+    </li>
+    <li>
+        <strong>Overview:</strong> A page showing live data from the device. It shows current, voltage and power data in real-time. Users can view the data in chart format and select a specific time period to view the data.
+        <br/> It's supposed to be a troubleshooting tool, or quick overview of the device's current state. Useful for detecting power spikes or other abnormalities.
+        <br/>
+        <Button Color="ButtonColor.Primary" Type="ButtonType.Button" Size="ButtonSize.Small" @onclick="NavigateToOverview"> Go to Overview</Button>
+    </li>
+    <li>
+        <strong>Summary:</strong> A page gathering and grouping all the data from the device. Each row is a separate, uninterrupted usage of device.
+        <br/> It could be used for analysis of how long and how often said device is being used over a time period.
+        <br/>
+        <Button Color="ButtonColor.Primary" Type="ButtonType.Button" Size="ButtonSize.Small" @onclick="NavigateToSummary"> Go to Summary</Button>
+    </li>
+</ul>
 
 @code {
-    private BarChart powerChart = default!;
-    private BarChart costChart = default!;
-    private BarChartOptions chartOptions = default!;
-    private ChartData powerChartData = default!;
-    private ChartData costChartData = default!;
-    private double costPerKWh = 0.8;
-    private AggregationType selectedView = AggregationType.Hourly;
-    private DateTime startDate = DateTime.Now.AddDays(-1);
-    private DateTime endDate = DateTime.Now;
-    private bool isFirstRender = true;
-
-    protected override async Task OnInitializedAsync()
+    private void NavigateToAggregation()
     {
-        chartOptions = GetBarChartOptions();
-        powerChartData = new ChartData { Labels = new List<string>(), Datasets = new List<IChartDataset>() };
-        costChartData = new ChartData { Labels = new List<string>(), Datasets = new List<IChartDataset>() };
+        Navigation.NavigateTo("/aggregation");
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private void NavigateToMeasurements()
     {
-        if (firstRender)
-        {
-            isFirstRender = false;
-            await powerChart.InitializeAsync(powerChartData, chartOptions, new string[] {"ChartDataLabels"});
-            await costChart.InitializeAsync(costChartData, chartOptions,new string[] {"ChartDataLabels"});
-            await FetchData();
-        }
+        Navigation.NavigateTo("/measurements");
     }
-
-    private async Task FetchData()
+    
+    private void NavigateToOverview()
     {
-        var data = await ApiService.GetAggregatedPowerAndCostData("9437412", startDate, endDate, selectedView, costPerKWh);
-        var energyData = data[0];
-        var costData = data[1];
-        var powerData = energyData.Select(x => Math.Round(x.Value, 3)).ToList();
-        var costValues = costData.Select(x => Math.Round(x.Value, 3)).ToList();
-        var labels = energyData.Select(x => x.Timestamp.ToLocalTime().ToString("dd-MM HH:mm")).ToList();
-
-        powerChartData.Labels = labels;
-        powerChartData.Datasets = new List<IChartDataset>() { new BarChartDataset { Label = "Power", Data = powerData } };
-
-        costChartData.Labels = labels;
-        costChartData.Datasets = new List<IChartDataset>() { new BarChartDataset { Label = "Cost", Data = costValues } };
-
-        await powerChart.UpdateAsync(powerChartData, chartOptions);
-        await costChart.UpdateAsync(costChartData, chartOptions);
+        Navigation.NavigateTo("/overview");
     }
-
-    private BarChartOptions GetBarChartOptions()
+    
+    private void NavigateToSummary()
     {
-        var options = new BarChartOptions
-        {
-            Interaction = { Mode = InteractionMode.Index },
-            Plugins =
-            {
-                Title = new ChartPluginsTitle { Text = "Readings", Display = true, Font = new ChartFont { Size = 15 } },
-            },
-            Responsive = true,
-            Scales =
-            {
-                X = { Title = new ChartAxesTitle { Text = "Time", Display = true } },
-                Y = { Title = new ChartAxesTitle { Text = "Value", Display = true } }
-            }
-        };
-        return options;
+        Navigation.NavigateTo("/summary");
     }
 }
