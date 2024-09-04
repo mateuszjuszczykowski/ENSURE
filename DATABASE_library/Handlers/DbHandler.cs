@@ -83,6 +83,20 @@ public class DbHandler
             .ToList();
         return documents;
     }
+    
+    public void DeleteData(string data, string deviceId, DateTime startDate, DateTime endDate) 
+    {
+        var start = startDate.ToUniversalTime();
+        var end = endDate.ToUniversalTime();
+        var collection = Context.Data;
+        var documents = collection
+            .Where(d => d.deviceID == deviceId &&
+                        d.Timestamp >= start &&
+                        d.Timestamp <= end)
+            .ToList();
+        collection.RemoveRange(documents);
+        Context.SaveChanges();
+    }
 
     //Measurement - API TO BE TESTED & FIXED
     public void SetMeasurement(string deviceId, string measurementName, string measurementCategory, DateTime startTime, DateTime endTime)
@@ -210,5 +224,6 @@ public class DbHandler
         Context.Measurements.Remove(measurement);
         Context.SaveChanges();
     }
-    
+
+
 }

@@ -58,4 +58,23 @@ public class DataController: ControllerBase
         var response = JsonConvert.SerializeObject(data);
         return Ok(response);
     }
+    
+    [HttpDelete(Name = "DeleteData")]
+    public IActionResult DeleteData([FromQuery] string start, string end, string deviceId)
+    {
+        if (string.IsNullOrEmpty(start) || string.IsNullOrEmpty(end) || string.IsNullOrEmpty(deviceId))
+        {
+            return BadRequest();
+        }
+        
+        var startDate = DateTime.Parse(start);
+        var endDate = DateTime.Parse(end);
+        
+        // specify kind of datetime to UTC
+        startDate = DateTime.SpecifyKind(startDate, DateTimeKind.Utc);
+        endDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc);
+        
+        _dbHandler.DeleteData("DATA", deviceId, startDate, endDate);
+        return Ok();
+    }
 }

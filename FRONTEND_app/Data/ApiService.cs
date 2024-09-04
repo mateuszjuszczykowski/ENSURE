@@ -97,6 +97,21 @@ public class ApiService
         await _httpClient.PostAsync(uri, null);
     }
     
+    public async Task SetMeasurement(MeasurementModel measurement)
+    {
+        if (measurement.StartTime.HasValue && measurement.EndTime.HasValue)
+        {
+            var start = measurement.StartTime.Value.ToUniversalTime();
+            var end = measurement.EndTime.Value.ToUniversalTime();
+            await SetMeasurement(measurement.DeviceId, measurement.Name, measurement.Category, start, end);
+        }
+        else
+        {
+            Console.Error.WriteLine("Measurement start and end time must be set");
+        }
+    }
+
+    
     public async Task StartMeasurement(string deviceId, string name, string category)
     {
         var query = $"deviceId={deviceId}&name={name}&category={category}";
@@ -148,10 +163,20 @@ public class ApiService
         var data = await _httpClient.GetFromJsonAsync<List<SummaryModel>>(uri);
         return data;
     }
-
+    
+    public async Task DeleteSummaryData(DateTime startTime, DateTime endTime, string deviceId)
+    {
+        var query = $"start={startTime}&end={endTime}&deviceId={deviceId}";
+        var uri = $"{_baseUrl}{_summaryEndpoint}?{query}";
+        await _httpClient.DeleteAsync(uri);
+    }
+    
     public class SummaryResponse
     {
         public List<SummaryModel> Data { get; set; }
         public int TotalCount { get; set; }
     }
 }
+
+
+

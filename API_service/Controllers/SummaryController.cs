@@ -43,6 +43,33 @@ public class SummaryController: ControllerBase
         return Ok(response);
     }
     
+    [HttpDelete(Name = "DeleteSummary")]
+    public IActionResult DeleteSummary([FromQuery] string start, string end, string deviceId)
+    {
+        if (string.IsNullOrEmpty(start) || string.IsNullOrEmpty(end) || string.IsNullOrEmpty(deviceId))
+        {
+            return BadRequest();
+        }
+
+        var startDate = DateTime.Parse(start);
+        var endDate = DateTime.Parse(end);
+
+        // specify kind of datetime to UTC
+        startDate = DateTime.SpecifyKind(startDate, DateTimeKind.Utc);
+        endDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc);
+
+        // Retrieve data between the specified dates
+        var data = _dbHandler.GetData("DATA", deviceId, startDate, endDate);
+        
+        if(data.Any(e => e.MeasurementId != null))
+        {
+            _dbHandler.DeleteMeasurement(data.Where(e => e.MeasurementId != null).First().MeasurementId);
+        }
+        
+        _dbHandler.DeleteData("DATA", deviceId, startDate, endDate);
+        return Ok();
+    }
+    
     private List<SummaryModel> ProcessData(List<DataModel> data, double pricePerKwh)
     {
         var summaryModels = new List<SummaryModel>();
@@ -51,7 +78,8 @@ public class SummaryController: ControllerBase
 
         foreach (var record in data)
         {
-            var category = record.Measurement?.Name ?? "Unclassified";
+            var category = record.Measurement?.Category ?? "Unclassified";
+            var name = record.Measurement?.Name;
 
             if (currentRecord == null || currentRecord.Category != category)
             {
@@ -65,6 +93,7 @@ public class SummaryController: ControllerBase
                 currentRecord = new SummaryModel()
                 {
                     Category = category,
+                    Name = name,
                     StartTime = record.Timestamp,
                     NumberOfRecords = 0,
                     TotalUsage = 0,
@@ -87,6 +116,7 @@ public class SummaryController: ControllerBase
                         currentRecord = new SummaryModel()
                         {
                             Category = category,
+                            Name = name,
                             StartTime = record.Timestamp,
                             NumberOfRecords = 0,
                             TotalUsage = 0,
@@ -120,4 +150,5 @@ public class SummaryController: ControllerBase
 
         return summaryModels;
     }
+    
 }

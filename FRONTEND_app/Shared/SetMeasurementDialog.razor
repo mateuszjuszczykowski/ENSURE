@@ -1,0 +1,47 @@
+@page "/set-measurement-dialog"
+@using DATABASE_library.Models.Data
+@using FRONTEND_app.Data
+@inject ApiService ApiService
+@inject ToastService ToastService
+
+<div class="row">
+    <div class="col-5 col-md-3 text-end">Start Time :</div>
+    <div class="col-7 col-md-9">@StartTime</div>
+</div>
+<div class="row">
+    <div class="col-5 col-md-3 text-end">End Time :</div>
+    <div class="col-7 col-md-9">@EndTime</div>
+</div>
+<div class="row">
+    <div class="col-5 col-md-3 text-end">Name :</div>
+    <div class="col-7 col-md-9">
+        <input type="text" @bind="measurementModel.Name" class="form-control" required />
+    </div>
+</div>
+<div class="row">
+    <div class="col-5 col-md-3 text-end">Category :</div>
+    <div class="col-7 col-md-9">
+        <input type="text" @bind="measurementModel.Category" class="form-control" required />
+    </div>
+</div>
+<button class="btn btn-primary" @onclick="HandleSetMeasurement">Submit</button>
+
+@code {
+    [Parameter] public DateTime StartTime { get; set; }
+    [Parameter] public DateTime EndTime { get; set; }
+    [Parameter] public string deviceId { get; set; }
+    
+    [Parameter] public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+    
+    private MeasurementModel measurementModel = new MeasurementModel();
+
+    private async Task HandleSetMeasurement()
+    {
+        measurementModel.DeviceId = deviceId;
+        measurementModel.StartTime = StartTime;
+        measurementModel.EndTime = EndTime;
+        await ApiService.SetMeasurement(measurementModel);
+        ToastService.Notify(new ToastMessage(ToastType.Success, "Measurement set successfully"));
+        await OnClickCallback.InvokeAsync(null);
+    }
+}

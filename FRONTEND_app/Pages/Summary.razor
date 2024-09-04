@@ -1,8 +1,9 @@
 ﻿@page "/summary"
 @using FRONTEND_app.Data
 @using DATABASE_library.Models.Data
-@using SortDirection = BlazorBootstrap.SortDirection
+@using FRONTEND_app.Shared
 @inject ApiService ApiService
+@inject ToastService ToastService
 
 <PageTitle>Summary</PageTitle>
 
@@ -10,13 +11,13 @@
 
 @if (summaryModels != null)
 {
-        
     <Grid TItem="SummaryModel"
           Class="table table-striped table-bordered table-hover"
           DataProvider="SummaryDataProvider"
           AllowFiltering="true"
           AllowSorting="true"
-          Responsive="true">
+          Responsive="true"
+          @ref="grid">
         
         <GridColumn TItem="SummaryModel" HeaderText="Category" PropertyName="Category" SortKeySelector="model => model.Category" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
             @context.Category
@@ -49,17 +50,28 @@
         <GridColumn TItem="SummaryModel" HeaderText="Total Price" PropertyName="TotalPrice" SortKeySelector="model => model.TotalPrice" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
             @Math.Round(context.TotalPrice, 4)
         </GridColumn>
+
+        <GridColumn TItem="SummaryModel" HeaderText="Actions" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
+            <button class="btn btn-danger" @onclick="() => DeleteSummary(context.StartTime, context.EndTime)">Delete</button>
+            @if (context.Category == "Unclassified")
+            {
+                <button class="btn btn-primary" @onclick="() => OpenSetMeasurementModal(context.StartTime, context.EndTime)">Set</button>
+            }
+        </GridColumn>
         
     </Grid>
-
 }
 else
 {
     <p>Data loading or no data to display</p>
 }
 
+<Modal @ref="modal"/>
+
 @code {
     private List<SummaryModel> summaryModels = null;
+    private Grid<SummaryModel> grid;
+    private Modal modal = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -74,4 +86,33 @@ else
         return await Task.FromResult(request.ApplyTo(summaryModels));
     }
 
+    private async Task DeleteSummary(DateTime startTime, DateTime endTime)
+    {
+        await ApiService.DeleteSummaryData(startTime, endTime, "9437412");
+        summaryModels = await ApiService.GetSummaryData("9437412");
+        ToastService.Notify(new ToastMessage(ToastType.Danger, "Summary deleted successfully, reloading..."));
+        await grid.RefreshDataAsync();
+
+    }
+    
+    private async void OpenSetMeasurementModal(DateTime startTime, DateTime endTime)
+    {
+        Console.WriteLine("OpenSetMeasurementModal");
+        var parameters = new Dictionary<string, object>()
+        {
+            { "StartTime", startTime },
+            { "EndTime", endTime },
+            { "deviceId", "9437412" }
+        };
+        
+        parameters.Add("OnclickCallback", EventCallback.Factory.Create<MouseEventArgs>(this, refreshGrid));
+        
+        await modal.ShowAsync<SetMeasurementDialog>(title: "Set Measurement", parameters: parameters);
+    }
+    
+    private async void refreshGrid(MouseEventArgs e)
+    {
+        summaryModels = await ApiService.GetSummaryData("9437412");
+        await grid.RefreshDataAsync();
+    }
 }
