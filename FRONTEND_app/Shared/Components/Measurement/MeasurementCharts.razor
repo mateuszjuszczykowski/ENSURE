@@ -7,20 +7,29 @@
 
 <div>
     <h3>Measurement Charts</h3>
-    <div class="chart-group">
-        <div class="chart-inline-measure">
-            <p>Average Power: @PowerAvg w</p>
-            <LineChart @ref="powerChart" Width="500" Height="300"/>
-        </div>
-        <div class="chart-inline-measure">
-            <p>Average Voltage: @VoltageAvg v</p>
-            <LineChart @ref="voltageChart" Width="500" Height="300"/>
-        </div>
-        <div class="chart-inline-measure">
-            <p>Average Current: @CurrentAvg A</p>
-            <LineChart @ref="currentChart" Width="500" Height="300"/>
-        </div>
+<div class="chart-group">
+    <div class="chart-inline-measure">
+        <p>Average Power: @PowerAvg w</p>
+        <p>Median Power: @PowerMedian w</p>
+        <p>Min Power: @PowerMin w</p>
+        <p>Max Power: @PowerMax w</p>
+        <LineChart @ref="powerChart" Width="500" Height="300"/>
     </div>
+    <div class="chart-inline-measure">
+        <p>Average Voltage: @VoltageAvg v</p>
+        <p>Median Voltage: @VoltageMedian v</p>
+        <p>Min Voltage: @VoltageMin v</p>
+        <p>Max Voltage: @VoltageMax v</p>
+        <LineChart @ref="voltageChart" Width="500" Height="300"/>
+    </div>
+    <div class="chart-inline-measure">
+        <p>Average Current: @CurrentAvg A</p>
+        <p>Median Current: @CurrentMedian A</p>
+        <p>Min Current: @CurrentMin A</p>
+        <p>Max Current: @CurrentMax A</p>
+        <LineChart @ref="currentChart" Width="500" Height="300"/>
+    </div>
+</div>
     <div class="chart-group">
         <div class="chart-inline-measure">
             <p>Total Energy Usage: @EnergySum kWh</p>
@@ -61,8 +70,20 @@
     private List<DateTime> AggregationTimestamps = new List<DateTime>();
     
     private double PowerAvg = 0;
+    private double PowerMedian = 0;
+    private double PowerMin = 0;
+    private double PowerMax = 0;
+    
     private double VoltageAvg = 0;
+    private double VoltageMedian = 0;
+    private double VoltageMin = 0;
+    private double VoltageMax = 0;
+    
     private double CurrentAvg = 0;
+    private double CurrentMedian = 0;
+    private double CurrentMin = 0;
+    private double CurrentMax = 0;
+    
     private double EnergySum = 0;
     private double PriceSum = 0;
     
@@ -114,7 +135,7 @@
         var powerData = Measurement.Data.Select(e => e.Power).ToList();
         var voltageData = Measurement.Data.Select(e => e.Voltage).ToList();
         var currentData = Measurement.Data.Select(e => e.Current).ToList();
-        Timestamps = Measurement.Data.Select(e => e.Timestamp).ToList();
+        Timestamps = Measurement.Data.Select(e => e.Timestamp).Order().ToList();
         
         var startTimestamp = Timestamps.First();
         var endTimestamp = Timestamps.Last();
@@ -128,8 +149,20 @@
         AggregationTimestamps = energyAndPriceData[0].Select(e => e.Timestamp).ToList();
         
         PowerAvg = Math.Round(powerData.Average(), 2);
-        VoltageAvg = Math.Round(voltageData.Average(),2);
+        PowerMedian = CalculateMedian(powerData);
+        PowerMin = powerData.Min();
+        PowerMax = powerData.Max();
+
+        VoltageAvg = Math.Round(voltageData.Average(), 2);
+        VoltageMedian = CalculateMedian(voltageData);
+        VoltageMin = voltageData.Min();
+        VoltageMax = voltageData.Max();
+
         CurrentAvg = Math.Round(currentData.Average(), 3);
+        CurrentMedian = CalculateMedian(currentData);
+        CurrentMin = currentData.Min();
+        CurrentMax = currentData.Max();
+        
         EnergySum = Math.Round(energyData.Sum(), 4);
         PriceSum = Math.Round(priceData.Sum(), 4);
         
@@ -141,7 +174,35 @@
 
         return true;
     }
+
+    private double CalculateMedian(List <int> data)
+    {
+        var sortedData = data.OrderBy(n => n).ToList();
+        int count = sortedData.Count;
+        if (count % 2 == 0)
+        {
+            return (sortedData[count / 2 - 1] + sortedData[count / 2]) / 2.0;
+        }
+        else
+        {
+            return sortedData[count / 2];
+        }
+    }
     
+    private double CalculateMedian(List<double> data)
+    {
+        var sortedData = data.OrderBy(n => n).ToList();
+        int count = sortedData.Count;
+        if (count % 2 == 0)
+        {
+            return (sortedData[count / 2 - 1] + sortedData[count / 2]) / 2.0;
+        }
+        else
+        {
+            return sortedData[count / 2];
+        }
+    }
+
     private ChartData CreateChartData(List<int> data, List<DateTime> timestamps, bool isBarChart = false)
     {
         var chartData = new ChartData() {Labels = new List<string>(), Datasets = new List<IChartDataset>()};
